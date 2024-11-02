@@ -28,7 +28,7 @@ jobs:
           target: "./libertai_agents"
           execute_command: 'poetry run mypy'
 
-  ruff:
+  package-ruff:
     name: "Package: ruff"
     runs-on: ubuntu-latest
     defaults:
