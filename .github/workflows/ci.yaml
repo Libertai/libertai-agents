@@ -46,3 +46,46 @@ jobs:
         run: pip install ruff
       - name: Run Ruff
         run: ruff check --output-format=github
+
+  backend-mypy:
+    name: "Backend: mypy"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: 'pyproject.toml'
+          cache: 'poetry'
+      - name: Install dependencies
+        run: poetry install
+      - uses: tsuyoshicho/action-mypy@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-check
+          workdir: './backend'
+          target: "./backend"
+          execute_command: 'poetry run mypy'
+
+  backend-ruff:
+    name: "Backend: ruff"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: './backend/pyproject.toml'
+          cache: 'poetry'
+      - name: Install dependencies
+        run: pip install ruff
+      - name: Run Ruff
+        run: ruff check --output-format=github
