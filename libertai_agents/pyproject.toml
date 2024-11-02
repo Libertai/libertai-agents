@@ -12,11 +12,11 @@ classifiers = [
     "Intended Audience :: Developers",
     "Development Status :: 2 - Pre-Alpha",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Programming Language :: Python :: 3.11"
+    "Programming Language :: Python :: 3.11",
 ]
 
 [tool.poetry.dependencies]
-python = "~3.11"
+python = ">=3.11, <3.12"
 transformers = "^4.46.0"
 pydantic = "^1.10"
 aiohttp = "^3.10"
