@@ -16,7 +16,7 @@ jobs:
         run: pipx install poetry
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version-file: './libertai_agents/pyproject.toml'
           cache: 'poetry'
       - name: Install dependencies
         run: poetry install
@@ -40,7 +40,7 @@ jobs:
         run: pipx install poetry
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version-file: './libertai_agents/pyproject.toml'
           cache: 'poetry'
       - name: Install dependencies
         run: pip install ruff
@@ -59,7 +59,7 @@ jobs:
         run: pipx install poetry
       - uses: actions/setup-python@v5
         with:
-          python-version-file: 'pyproject.toml'
+          python-version-file: './backend/pyproject.toml'
           cache: 'poetry'
       - name: Install dependencies
         run: poetry install
@@ -68,7 +68,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-check
           workdir: './backend'
-          target: "./backend"
+          target: "./src"
           execute_command: 'poetry run mypy'
 
   backend-ruff:
