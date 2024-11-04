@@ -1,7 +1,7 @@
+from libertai_utils.interfaces.subscription import SubscriptionAccount
 from pydantic import BaseModel, validator
 
 from src.config import config
-from src.interfaces.subscription import SubscriptionAccount
 
 
 class DeleteAgentBody(BaseModel):
@@ -25,14 +25,25 @@ class UpdateAgentResponse(BaseModel):
     vm_hash: str
 
 
-class Agent(BaseModel):
+class PublicAgentData(BaseModel):
     id: str
-    subscription_id: str
     vm_hash: str | None
-    encrypted_secret: str
     last_update: int
+
+
+class Agent(PublicAgentData):
+    subscription_id: str
+    encrypted_secret: str
     tags: list[str]
 
 
 class FetchedAgent(Agent):
     post_hash: str
+
+
+class GetAgentResponse(PublicAgentData):
+    pass
+
+
+class GetAgentSecretResponse(BaseModel):
+    secret: str

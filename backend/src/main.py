@@ -16,6 +16,8 @@ from src.interfaces.agent import (
     SetupAgentBody,
     DeleteAgentBody,
     UpdateAgentResponse,
+    GetAgentResponse,
+    GetAgentSecretResponse,
 )
 from src.interfaces.aleph import AlephVolume
 from src.utils.agent import fetch_agents, fetch_agent_program_message
@@ -66,9 +68,39 @@ async def setup(body: SetupAgentBody) -> None:
         )
 
 
-@app.put("/agent", description="Deploy an agent or update it")
+@app.get("/agent/{agent_id}", description="Get an agent public information")
+async def get_agent_public_info(agent_id: str) -> GetAgentResponse:
+    agents = await fetch_agents([agent_id])
+
+    if len(agents) != 1:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=f"Agent with ID {agent_id} not found.",
+        )
+    agent = agents[0]
+
+    return GetAgentResponse(
+        id=agent.id, vm_hash=agent.vm_hash, last_update=agent.last_update
+    )
+
+
+@app.get("/agent/{agent_id}/secret", description="Get an agent secret")
+async def get_agent_secret(agent_id: str, signature: str) -> GetAgentSecretResponse:
+    agents = await fetch_agents([agent_id])
+
+    if len(agents) != 1:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=f"Agent with ID {agent_id} not found.",
+        )
+    # agent = agents[0]
+    # TODO: real implementation
+    return GetAgentSecretResponse(secret="")
+
+
+@app.put("/agent/{agent_id}", description="Deploy an agent or update it")
 async def update(
-    agent_id: str = Form(),
+    agent_id: str,
     secret: str = Form(),
     code: UploadFile = File(...),
     packages: UploadFile = File(...),

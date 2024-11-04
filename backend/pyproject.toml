@@ -14,6 +14,7 @@ python = "^3.12"
 fastapi = { extras = ["standard"], version = "^0.115.2" }
 aleph-sdk-python = "^1.1.0"
 eciespy = "^0.4.2"
+libertai-utils = "^0.0.2"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.12.0"
