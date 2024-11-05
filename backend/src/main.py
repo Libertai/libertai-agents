@@ -1,13 +1,15 @@
-import base64
 import time
 from http import HTTPStatus
 from uuid import uuid4
 
+import aiohttp
 from aleph.sdk import AuthenticatedAlephHttpClient
 from aleph.sdk.chains.ethereum import ETHAccount
 from aleph_message.models.execution import Encoding
-from ecies import encrypt, decrypt
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from libertai_utils.chains.index import is_signature_valid
+from libertai_utils.interfaces.subscription import Subscription
+from libertai_utils.utils.crypto import decrypt, encrypt
 from starlette.middleware.cors import CORSMiddleware
 
 from src.config import config
@@ -18,9 +20,11 @@ from src.interfaces.agent import (
     UpdateAgentResponse,
     GetAgentResponse,
     GetAgentSecretResponse,
+    GetAgentSecretMessage,
 )
 from src.interfaces.aleph import AlephVolume
 from src.utils.agent import fetch_agents, fetch_agent_program_message
+from src.utils.message import get_view_agent_secret_message
 from src.utils.storage import upload_file
 
 app = FastAPI(title="LibertAI agents")
@@ -43,16 +47,13 @@ async def setup(body: SetupAgentBody) -> None:
     agent_id = str(uuid4())
 
     secret = str(uuid4())
-    # Encrypting the secret ID with our public key
-    encrypted_secret = encrypt(config.ALEPH_SENDER_PK, secret.encode())
-    # Encoding it in base64 to avoid data loss when stored on Aleph
-    base64_encrypted_secret = base64.b64encode(encrypted_secret).decode()
+    encrypted_secret = encrypt(secret, config.ALEPH_SENDER_PK)
 
     agent = Agent(
         id=agent_id,
         subscription_id=body.subscription_id,
         vm_hash=None,
-        encrypted_secret=base64_encrypted_secret,
+        encrypted_secret=encrypted_secret,
         last_update=int(time.time()),
         tags=[agent_id, body.subscription_id, body.account.address],
     )
@@ -93,9 +94,45 @@ async def get_agent_secret(agent_id: str, signature: str) -> GetAgentSecretRespo
             status_code=HTTPStatus.NOT_FOUND,
             detail=f"Agent with ID {agent_id} not found.",
         )
-    # agent = agents[0]
-    # TODO: real implementation
-    return GetAgentSecretResponse(secret="")
+    agent = agents[0]
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            url=f"{config.SUBSCRIPTION_BACKEND_URL}/subscriptions/{agent.subscription_id}"
+        ) as response:
+            data = await response.json()
+            if response.status != HTTPStatus.OK:
+                raise HTTPException(
+                    status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                    detail=f"Subscriptions API returned a non-200 code: {data}",
+                )
+            subscription = Subscription(**data)
+            print(subscription.account)
+
+    valid_signature = is_signature_valid(
+        subscription.account.chain,
+        get_view_agent_secret_message(agent_id),
+        signature,
+        subscription.account.address,
+    )
+
+    if not valid_signature:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail="The signature doesn't match the owner of this agent subscription",
+        )
+
+    decrypted_secret = decrypt(agent.encrypted_secret, config.ALEPH_SENDER_SK)
+
+    return GetAgentSecretResponse(secret=decrypted_secret)
+
+
+@app.get(
+    "/agent/{agent_id}/secret-message",
+    description="Get the message to fetch an agent secret",
+)
+def get_agent_secret_message(agent_id: str) -> GetAgentSecretMessage:
+    return GetAgentSecretMessage(message=get_view_agent_secret_message(agent_id))
 
 
 @app.put("/agent/{agent_id}", description="Deploy an agent or update it")
@@ -119,10 +156,8 @@ async def update(
         else None
     )
 
-    # Decode the base64 secret
-    encrypted_secret = base64.b64decode(agent.encrypted_secret)
+    decrypted_secret = decrypt(agent.encrypted_secret, config.ALEPH_SENDER_SK)
 
-    decrypted_secret = decrypt(config.ALEPH_SENDER_SK, encrypted_secret).decode()
     if secret != decrypted_secret:
         raise HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED,

@@ -12,6 +12,7 @@ class _Config:
     ALEPH_CHANNEL: str
     ALEPH_AGENT_POST_TYPE: str
 
+    SUBSCRIPTION_BACKEND_URL: str
     SUBSCRIPTION_BACKEND_PASSWORD: str
 
     def __init__(self):
@@ -26,6 +27,7 @@ class _Config:
             "ALEPH_AGENT_POST_TYPE", "libertai-agent"
         )
 
+        self.SUBSCRIPTION_BACKEND_URL = os.getenv("SUBSCRIPTION_BACKEND_URL")
         self.SUBSCRIPTION_BACKEND_PASSWORD = os.getenv("SUBSCRIPTION_BACKEND_PASSWORD")
 
 

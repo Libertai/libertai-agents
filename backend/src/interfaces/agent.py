@@ -1,13 +1,11 @@
+from libertai_utils.interfaces.agent import BaseDeleteAgentBody
 from libertai_utils.interfaces.subscription import SubscriptionAccount
 from pydantic import BaseModel, validator
 
 from src.config import config
 
 
-class DeleteAgentBody(BaseModel):
-    subscription_id: str
-    password: str
-
+class DeleteAgentBody(BaseDeleteAgentBody):
     # noinspection PyMethodParameters
     @validator("password")
     def format_address(cls, password: str):
@@ -39,6 +37,10 @@ class Agent(PublicAgentData):
 
 class FetchedAgent(Agent):
     post_hash: str
+
+
+class GetAgentSecretMessage(BaseModel):
+    message: str
 
 
 class GetAgentResponse(PublicAgentData):
