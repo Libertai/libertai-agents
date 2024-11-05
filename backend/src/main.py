@@ -71,6 +71,7 @@ async def setup(body: SetupAgentBody) -> None:
 
 @app.get("/agent/{agent_id}", description="Get an agent public information")
 async def get_agent_public_info(agent_id: str) -> GetAgentResponse:
+    """Get an agent by an ID (either agent ID or subscription ID)"""
     agents = await fetch_agents([agent_id])
 
     if len(agents) != 1:
@@ -107,7 +108,6 @@ async def get_agent_secret(agent_id: str, signature: str) -> GetAgentSecretRespo
                     detail=f"Subscriptions API returned a non-200 code: {data}",
                 )
             subscription = Subscription(**data)
-            print(subscription.account)
 
     valid_signature = is_signature_valid(
         subscription.account.chain,
@@ -175,44 +175,44 @@ async def update(
     code_ref = await upload_file(code, previous_code_ref)
     packages_ref = await upload_file(packages, previous_packages_ref)
 
-    if agent_program is not None:
-        # Program is already deployed and we updated the volumes, exiting here
-        return UpdateAgentResponse(vm_hash=agent_program.item_hash)
-
     # Register the program
     aleph_account = ETHAccount(config.ALEPH_SENDER_SK)
     async with AuthenticatedAlephHttpClient(
         account=aleph_account, api_server=config.ALEPH_API_URL
     ) as client:
-        message, _ = await client.create_program(
-            program_ref=code_ref,
-            entrypoint="run",
-            runtime="63f07193e6ee9d207b7d1fcf8286f9aee34e6f12f101d2ec77c1229f92964696",
-            channel=config.ALEPH_CHANNEL,
-            encoding=Encoding.squashfs,
-            persistent=False,
-            volumes=[
-                AlephVolume(
-                    comment="Python packages",
-                    mount="/opt/packages",
-                    ref=packages_ref,
-                    use_latest=True,
-                ).dict()
-            ],
-        )
+        vm_hash = agent.vm_hash
+
+        if vm_hash is None:
+            message, _ = await client.create_program(
+                program_ref=code_ref,
+                entrypoint="run",
+                runtime="63f07193e6ee9d207b7d1fcf8286f9aee34e6f12f101d2ec77c1229f92964696",
+                channel=config.ALEPH_CHANNEL,
+                encoding=Encoding.squashfs,
+                persistent=False,
+                volumes=[
+                    AlephVolume(
+                        comment="Python packages",
+                        mount="/opt/packages",
+                        ref=packages_ref,
+                        use_latest=True,
+                    ).dict()
+                ],
+            )
+            vm_hash = message.item_hash
 
         # Updating the related POST message
         await client.create_post(
             post_content=Agent(
                 **agent.dict(exclude={"vm_hash", "last_update"}),
-                vm_hash=message.item_hash,
+                vm_hash=vm_hash,
                 last_update=int(time.time()),
             ),
             post_type="amend",
             ref=agent.post_hash,
             channel=config.ALEPH_CHANNEL,
         )
-    return UpdateAgentResponse(vm_hash=message.item_hash)
+    return UpdateAgentResponse(vm_hash=vm_hash)
 
 
 @app.delete("/agent", description="Remove an agent on subscription end")
