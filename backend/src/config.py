@@ -7,6 +7,7 @@ class _Config:
     ALEPH_API_URL: str | None
 
     ALEPH_SENDER: str
+    ALEPH_OWNER: str
     ALEPH_SENDER_SK: bytes
     ALEPH_SENDER_PK: bytes
     ALEPH_CHANNEL: str
@@ -20,6 +21,7 @@ class _Config:
 
         self.ALEPH_API_URL = os.getenv("ALEPH_API_URL")
         self.ALEPH_SENDER = os.getenv("ALEPH_SENDER")
+        self.ALEPH_OWNER = os.getenv("ALEPH_OWNER")
         self.ALEPH_SENDER_SK = os.getenv("ALEPH_SENDER_SK")  # type: ignore
         self.ALEPH_SENDER_PK = os.getenv("ALEPH_SENDER_PK")  # type: ignore
         self.ALEPH_CHANNEL = os.getenv("ALEPH_CHANNEL", "libertai")

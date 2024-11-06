@@ -40,6 +40,7 @@ async def upload_file(file: UploadFile, previous_ref: ItemHash | None = None) ->
         if file_size > MAX_DIRECT_STORE_SIZE:
             ipfs_hash = await __upload_on_ipfs(file_content, file.filename)
             store_message, _ = await client.create_store(
+                address=config.ALEPH_OWNER,
                 ref=previous_ref,
                 file_hash=ipfs_hash,
                 storage_engine=storage_engine,
@@ -48,6 +49,7 @@ async def upload_file(file: UploadFile, previous_ref: ItemHash | None = None) ->
             )
         else:
             store_message, _ = await client.create_store(
+                address=config.ALEPH_OWNER,
                 ref=previous_ref,
                 file_content=file_content,
                 storage_engine=storage_engine,

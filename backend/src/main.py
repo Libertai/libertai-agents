@@ -63,6 +63,7 @@ async def setup(body: SetupAgentBody) -> None:
         account=aleph_account, api_server=config.ALEPH_API_URL
     ) as client:
         post_message, _ = await client.create_post(
+            address=config.ALEPH_OWNER,
             post_content=agent.dict(),
             post_type=config.ALEPH_AGENT_POST_TYPE,
             channel=config.ALEPH_CHANNEL,
@@ -184,6 +185,7 @@ async def update(
 
         if vm_hash is None:
             message, _ = await client.create_program(
+                address=config.ALEPH_OWNER,
                 program_ref=code_ref,
                 entrypoint="run",
                 runtime="63f07193e6ee9d207b7d1fcf8286f9aee34e6f12f101d2ec77c1229f92964696",
@@ -203,6 +205,7 @@ async def update(
 
         # Updating the related POST message
         await client.create_post(
+            address=config.ALEPH_OWNER,
             post_content=Agent(
                 **agent.dict(exclude={"vm_hash", "last_update"}),
                 vm_hash=vm_hash,
