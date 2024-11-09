@@ -8,7 +8,6 @@ from libertai_agents.interfaces.messages import Message, ToolCallFunction, Messa
 logging.getLogger("transformers").disabled = True
 
 ModelId = Literal[
-    "NousResearch/Hermes-2-Pro-Llama-3-8B",
     "NousResearch/Hermes-3-Llama-3.1-8B",
     "mistralai/Mistral-Nemo-Instruct-2407"
 ]

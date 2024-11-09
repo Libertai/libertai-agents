@@ -1,16 +1,11 @@
 # LibertAI Agents
 
-## Supported models
+LibertAI Agents are highly customizable assistants that operates in a decentralized and confidential environment.\
+They can be given tools to perform tasks (search something on the web, make a transaction on-chain...), making them
+powerful companions.
 
-We support multiple open-source models that have agentic capabilities.
+> 💡 Agents are currently in private beta, contact the team [on Telegram](https://t.me/libertai) if you
+want to try it out!\
+We are planning some improvements and will listen to beta tester's feedbacks before releasing a stable version.
 
-- [Hermes 2 Pro - Llama 3 8B](https://huggingface.co/NousResearch/Hermes-2-Pro-Llama-3-8B)
-- ⏳ [Hermes 3 - Llama-3.1 8B](https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-8B)
-- ⏳ [Mistral-Nemo-Instruct-2407](https://huggingface.co/mistralai/Mistral-Nemo-Instruct-2407)
-
-## Using a gated model
-
-Some models, like [Mistral-Nemo-Instruct-2407](https://huggingface.co/mistralai/Mistral-Nemo-Instruct-2407) are gated (
-generally to require you to accept some usage conditions).\
-To use those models, you need to create an [access token](https://huggingface.co/settings/tokens) from your Hugging Face
-account and give it to the `get_model` function.
+This repository contains the source code of the actual [Python framework](https://pypi.org/project/libertai-agents) that you can use to create your agents, along with the backend used internally to manage their deployment on [Aleph.im](https://aleph.im)'s decentralized and confidential VMs.
