@@ -56,4 +56,4 @@ async def upload_file(file: UploadFile, previous_ref: ItemHash | None = None) ->
                 channel=config.ALEPH_CHANNEL,
                 guess_mime_type=True,
             )
-        return store_message.item_hash
+        return previous_ref if previous_ref is not None else store_message.item_hash

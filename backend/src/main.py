@@ -192,6 +192,7 @@ async def update(
                 channel=config.ALEPH_CHANNEL,
                 encoding=Encoding.squashfs,
                 persistent=False,
+                sync=True,
                 volumes=[
                     AlephVolume(
                         comment="Python packages",
@@ -214,6 +215,7 @@ async def update(
             post_type="amend",
             ref=agent.post_hash,
             channel=config.ALEPH_CHANNEL,
+            sync=True,
         )
     return UpdateAgentResponse(vm_hash=vm_hash)
 

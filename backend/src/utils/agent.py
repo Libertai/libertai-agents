@@ -17,7 +17,8 @@ async def fetch_agents(ids: list[str] | None = None) -> list[FetchedAgent]:
             )
         )
     return [
-        FetchedAgent(**post.content, post_hash=post.item_hash) for post in result.posts
+        FetchedAgent(**post.content, post_hash=post.original_item_hash)
+        for post in result.posts
     ]
 
 
