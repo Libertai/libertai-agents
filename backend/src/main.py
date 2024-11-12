@@ -222,5 +222,21 @@ async def update(
 
 @app.delete("/agent", description="Remove an agent on subscription end")
 async def delete(body: DeleteAgentBody):
-    # TODO
-    pass
+    agents = await fetch_agents([body.subscription_id])
+
+    if len(agents) != 1:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=f"Agent for subscription ID {body.subscription_id} not found.",
+        )
+    agent = agents[0]
+
+    aleph_account = ETHAccount(config.ALEPH_SENDER_SK)
+    async with AuthenticatedAlephHttpClient(
+        account=aleph_account, api_server=config.ALEPH_API_URL
+    ) as client:
+        await client.forget(
+            address=config.ALEPH_OWNER,
+            hashes=[agent.vm_hash],
+            reason="LibertAI Agent subscription ended",
+        )
