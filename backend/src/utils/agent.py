@@ -11,7 +11,7 @@ async def fetch_agents(ids: list[str] | None = None) -> list[FetchedAgent]:
         result = await client.get_posts(
             post_filter=PostFilter(
                 types=[config.ALEPH_AGENT_POST_TYPE],
-                addresses=[config.ALEPH_SENDER],
+                addresses=[config.ALEPH_OWNER],
                 tags=ids,
                 channels=[config.ALEPH_CHANNEL],
             )
