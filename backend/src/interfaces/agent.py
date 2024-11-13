@@ -25,12 +25,12 @@ class UpdateAgentResponse(BaseModel):
 
 class PublicAgentData(BaseModel):
     id: str
+    subscription_id: str
     vm_hash: str | None
     last_update: int
 
 
 class Agent(PublicAgentData):
-    subscription_id: str
     encrypted_secret: str
     tags: list[str]
 
