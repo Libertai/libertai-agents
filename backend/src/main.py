@@ -83,7 +83,10 @@ async def get_agent_public_info(agent_id: str) -> GetAgentResponse:
     agent = agents[0]
 
     return GetAgentResponse(
-        id=agent.id, vm_hash=agent.vm_hash, last_update=agent.last_update
+        id=agent.id,
+        vm_hash=agent.vm_hash,
+        last_update=agent.last_update,
+        subscription_id=agent.subscription_id,
     )
 
 
