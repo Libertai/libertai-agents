@@ -1,3 +1,4 @@
+import json
 import time
 from http import HTTPStatus
 from uuid import uuid4
@@ -60,7 +61,7 @@ async def setup(body: SetupAgentBody) -> None:
 
     aleph_account = ETHAccount(config.ALEPH_SENDER_SK)
     async with AuthenticatedAlephHttpClient(
-        account=aleph_account, api_server=config.ALEPH_API_URL
+            account=aleph_account, api_server=config.ALEPH_API_URL
     ) as client:
         post_message, _ = await client.create_post(
             address=config.ALEPH_OWNER,
@@ -103,7 +104,7 @@ async def get_agent_secret(agent_id: str, signature: str) -> GetAgentSecretRespo
 
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            url=f"{config.SUBSCRIPTION_BACKEND_URL}/subscriptions/{agent.subscription_id}"
+                url=f"{config.SUBSCRIPTION_BACKEND_URL}/subscriptions/{agent.subscription_id}"
         ) as response:
             data = await response.json()
             if response.status != HTTPStatus.OK:
@@ -141,11 +142,13 @@ def get_agent_secret_message(agent_id: str) -> GetAgentSecretMessage:
 
 @app.put("/agent/{agent_id}", description="Deploy an agent or update it")
 async def update(
-    agent_id: str,
-    secret: str = Form(),
-    code: UploadFile = File(...),
-    packages: UploadFile = File(...),
+        agent_id: str,
+        secret: str = Form(),
+        env_variables: str = Form(),  # actually dict[str, str] but the typing doesn't work well with forms
+        code: UploadFile = File(...),
+        packages: UploadFile = File(...),
 ) -> UpdateAgentResponse:
+    env_variables = json.loads(env_variables)
     agents = await fetch_agents([agent_id])
 
     if len(agents) != 1:
@@ -182,7 +185,7 @@ async def update(
     # Register the program
     aleph_account = ETHAccount(config.ALEPH_SENDER_SK)
     async with AuthenticatedAlephHttpClient(
-        account=aleph_account, api_server=config.ALEPH_API_URL
+            account=aleph_account, api_server=config.ALEPH_API_URL
     ) as client:
         vm_hash = agent.vm_hash
 
@@ -192,6 +195,7 @@ async def update(
                 program_ref=code_ref,
                 entrypoint="run",
                 runtime="63f07193e6ee9d207b7d1fcf8286f9aee34e6f12f101d2ec77c1229f92964696",
+                environment_variables=env_variables,
                 channel=config.ALEPH_CHANNEL,
                 encoding=Encoding.squashfs,
                 persistent=False,
@@ -206,6 +210,8 @@ async def update(
                 ],
             )
             vm_hash = message.item_hash
+
+        # TODO: update env_vars also if vm already created
 
         # Updating the related POST message
         await client.create_post(
@@ -236,10 +242,12 @@ async def delete(body: DeleteAgentBody):
 
     aleph_account = ETHAccount(config.ALEPH_SENDER_SK)
     async with AuthenticatedAlephHttpClient(
-        account=aleph_account, api_server=config.ALEPH_API_URL
+            account=aleph_account, api_server=config.ALEPH_API_URL
     ) as client:
+        # TODO: should we delete STORE messages of the code / deps too ?
         await client.forget(
             address=config.ALEPH_OWNER,
             hashes=[agent.vm_hash],
+            channel=config.ALEPH_CHANNEL,
             reason="LibertAI Agent subscription ended",
         )
