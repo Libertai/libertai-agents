@@ -69,7 +69,7 @@ class ChatAgent:
         Generate an answer based on a conversation
 
         :param messages: List of messages previously sent in this conversation
-        :param only_final_answer: Only yields the final answer without include the thought process (tool calls and their response)
+        :param only_final_answer: Only yields the final answer without including the thought process (tool calls and their response)
         :return: The string response of the agent
         """
         if len(messages) == 0:
