@@ -1,5 +1,12 @@
 # LibertAI Agents
 
+<div align="center">
+
+[![pypi](https://img.shields.io/pypi/v/libertai-agents.svg)](https://pypi.org/project/libertai-agents)
+[![python](https://img.shields.io/pypi/pyversions/libertai-agents.svg)](https://pypi.org/project/libertai-agents)
+
+</div>
+
 LibertAI Agents are highly customizable assistants that operates in a decentralized and confidential environment.\
 They can be given tools to perform tasks (search something on the web, make a transaction on-chain...), making them
 powerful companions.
