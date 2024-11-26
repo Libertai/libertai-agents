@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "libertai-agents"
-version = "0.0.2"
+version = "0.0.3"
 description = "Framework to create and deploy decentralized agents"
 authors = ["LibertAI.io team <hello@libertai.io>"]
 readme = "README.md"
+license = "MIT"
 homepage = "https://libertai.io"
 repository = "https://github.com/LibertAI/libertai-agents"
 documentation = "https://docs.libertai.io/agents"
