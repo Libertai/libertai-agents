@@ -148,7 +148,7 @@ async def update(
         code: UploadFile = File(...),
         packages: UploadFile = File(...),
 ) -> UpdateAgentResponse:
-    env_variables = json.loads(env_variables)
+    env_variables_dict = json.loads(env_variables)
     agents = await fetch_agents([agent_id])
 
     if len(agents) != 1:
@@ -195,7 +195,7 @@ async def update(
                 program_ref=code_ref,
                 entrypoint="run",
                 runtime="63f07193e6ee9d207b7d1fcf8286f9aee34e6f12f101d2ec77c1229f92964696",
-                environment_variables=env_variables,
+                environment_variables=env_variables_dict,
                 channel=config.ALEPH_CHANNEL,
                 encoding=Encoding.squashfs,
                 persistent=False,
