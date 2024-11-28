@@ -21,7 +21,6 @@ apt-get install -y --no-install-recommends --no-install-suggests \
   python3-setuptools python3-venv \
   python3-pip python3-cytoolz python3-pydantic \
   iproute2 unzip \
-  nodejs npm \
   build-essential python3-dev \
   python3-fastapi \
   docker.io \
