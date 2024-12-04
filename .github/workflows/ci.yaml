@@ -27,6 +27,7 @@ jobs:
           workdir: './libertai_agents'
           target: "./libertai_agents"
           execute_command: 'poetry run mypy'
+          fail_on_error: true
 
   package-ruff:
     name: "Package: ruff"
@@ -70,6 +71,7 @@ jobs:
           workdir: './backend'
           target: "./src"
           execute_command: 'poetry run mypy'
+          fail_on_error: true
 
   backend-ruff:
     name: "Backend: ruff"
