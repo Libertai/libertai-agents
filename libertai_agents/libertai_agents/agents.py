@@ -1,17 +1,28 @@
 import asyncio
+import inspect
 import json
 from http import HTTPStatus
-from typing import Callable, Awaitable, Any, AsyncIterable
+from typing import Awaitable, Any, AsyncIterable
 
 import aiohttp
 from aiohttp import ClientSession
 from fastapi import APIRouter, FastAPI
 from starlette.responses import StreamingResponse
 
-from libertai_agents.interfaces.llamacpp import CustomizableLlamaCppParams, LlamaCppParams
-from libertai_agents.interfaces.messages import Message, MessageRoleEnum, MessageToolCall, ToolCallFunction, \
-    ToolCallMessage, ToolResponseMessage
+from libertai_agents.interfaces.llamacpp import (
+    CustomizableLlamaCppParams,
+    LlamaCppParams,
+)
+from libertai_agents.interfaces.messages import (
+    Message,
+    MessageRoleEnum,
+    MessageToolCall,
+    ToolCallFunction,
+    ToolCallMessage,
+    ToolResponseMessage,
+)
 from libertai_agents.interfaces.models import ModelInformation
+from libertai_agents.interfaces.tools import Tool
 from libertai_agents.models import Model
 from libertai_agents.utils import find
 
@@ -21,14 +32,18 @@ MAX_TOOL_CALLS_DEPTH = 3
 class ChatAgent:
     model: Model
     system_prompt: str | None
-    tools: list[Callable[..., Awaitable[Any]]]
+    tools: list[Tool]
     llamacpp_params: CustomizableLlamaCppParams
     app: FastAPI | None
 
-    def __init__(self, model: Model, system_prompt: str | None = None,
-                 tools: list[Callable[..., Awaitable[Any]]] | None = None,
-                 llamacpp_params: CustomizableLlamaCppParams = CustomizableLlamaCppParams(),
-                 expose_api: bool = True):
+    def __init__(
+        self,
+        model: Model,
+        system_prompt: str | None = None,
+        tools: list[Tool] | None = None,
+        llamacpp_params: CustomizableLlamaCppParams = CustomizableLlamaCppParams(),
+        expose_api: bool = True,
+    ):
         """
         Create a LibertAI chatbot agent that can answer to messages from users
 
@@ -41,7 +56,7 @@ class ChatAgent:
         if tools is None:
             tools = []
 
-        if len(set(map(lambda x: x.__name__, tools))) != len(tools):
+        if len(set(map(lambda x: x.name, tools))) != len(tools):
             raise ValueError("Tool functions must have different names")
         self.model = model
         self.system_prompt = system_prompt
@@ -51,8 +66,12 @@ class ChatAgent:
         if expose_api:
             # Define API routes
             router = APIRouter()
-            router.add_api_route("/generate-answer", self.__api_generate_answer, methods=["POST"],
-                                 summary="Generate Answer")
+            router.add_api_route(
+                "/generate-answer",
+                self.__api_generate_answer,
+                methods=["POST"],
+                summary="Generate Answer",
+            )
             router.add_api_route("/model", self.get_model_information, methods=["GET"])
 
             self.app = FastAPI(title="LibertAI ChatAgent")
@@ -62,9 +81,13 @@ class ChatAgent:
         """
         Get information about the model powering this agent
         """
-        return ModelInformation(id=self.model.model_id, context_length=self.model.context_length)
+        return ModelInformation(
+            id=self.model.model_id, context_length=self.model.context_length
+        )
 
-    async def generate_answer(self, messages: list[Message], only_final_answer: bool = True) -> AsyncIterable[Message]:
+    async def generate_answer(
+        self, messages: list[Message], only_final_answer: bool = True
+    ) -> AsyncIterable[Message]:
         """
         Generate an answer based on a conversation
 
@@ -78,7 +101,9 @@ class ChatAgent:
             raise ValueError("Last message is not from the user or a tool response")
 
         for _ in range(MAX_TOOL_CALLS_DEPTH):
-            prompt = self.model.generate_prompt(messages, self.tools, system_prompt=self.system_prompt)
+            prompt = self.model.generate_prompt(
+                messages, self.tools, system_prompt=self.system_prompt
+            )
             async with aiohttp.ClientSession() as session:
                 response = await self.__call_model(session, prompt)
 
@@ -97,36 +122,53 @@ class ChatAgent:
                 if not only_final_answer:
                     yield tool_calls_message
 
-                executed_calls = self.__execute_tool_calls(tool_calls_message.tool_calls)
+                executed_calls = self.__execute_tool_calls(
+                    tool_calls_message.tool_calls
+                )
                 results = await asyncio.gather(*executed_calls)
                 tool_results_messages: list[Message] = [
-                    ToolResponseMessage(role=MessageRoleEnum.tool, name=call.function.name, tool_call_id=call.id,
-                                        content=str(results[i])) for i, call in
-                    enumerate(tool_calls_message.tool_calls)]
+                    ToolResponseMessage(
+                        role=MessageRoleEnum.tool,
+                        name=call.function.name,
+                        tool_call_id=call.id,
+                        content=str(results[i]),
+                    )
+                    for i, call in enumerate(tool_calls_message.tool_calls)
+                ]
                 if not only_final_answer:
                     for tool_result_message in tool_results_messages:
                         yield tool_result_message
                 # Doing the next iteration of the loop with the results to make other tool calls or to answer
                 messages = messages + tool_results_messages
 
-    async def __api_generate_answer(self, messages: list[Message], stream: bool = False,
-                                    only_final_answer: bool = True):
+    async def __api_generate_answer(
+        self,
+        messages: list[Message],
+        stream: bool = False,
+        only_final_answer: bool = True,
+    ):
         """
         Generate an answer based on an existing conversation.
         The response messages can be streamed or sent in a single block.
         """
         if stream:
             return StreamingResponse(
-                self.__dump_api_generate_streamed_answer(messages, only_final_answer=only_final_answer),
-                media_type='text/event-stream')
+                self.__dump_api_generate_streamed_answer(
+                    messages, only_final_answer=only_final_answer
+                ),
+                media_type="text/event-stream",
+            )
 
         response_messages: list[Message] = []
-        async for message in self.generate_answer(messages, only_final_answer=only_final_answer):
+        async for message in self.generate_answer(
+            messages, only_final_answer=only_final_answer
+        ):
             response_messages.append(message)
         return response_messages
 
-    async def __dump_api_generate_streamed_answer(self, messages: list[Message], only_final_answer: bool) -> \
-            AsyncIterable[str]:
+    async def __dump_api_generate_streamed_answer(
+        self, messages: list[Message], only_final_answer: bool
+    ) -> AsyncIterable[str]:
         """
         Dump to JSON the generate_answer iterable
 
@@ -134,7 +176,9 @@ class ChatAgent:
         :param only_final_answer: Param to pass to generate_answer
         :return: Iterable of each messages from generate_answer dumped to JSON
         """
-        async for message in self.generate_answer(messages, only_final_answer=only_final_answer):
+        async for message in self.generate_answer(
+            messages, only_final_answer=only_final_answer
+        ):
             yield json.dumps(message.dict(), indent=4)
 
     async def __call_model(self, session: ClientSession, prompt: str) -> str | None:
@@ -154,7 +198,9 @@ class ChatAgent:
                 return response_data["content"]
         return None
 
-    def __execute_tool_calls(self, tool_calls: list[MessageToolCall]) -> list[Awaitable[Any]]:
+    def __execute_tool_calls(
+        self, tool_calls: list[MessageToolCall]
+    ) -> list[Awaitable[Any]]:
         """
         Execute the given tool calls (without waiting for completion)
 
@@ -164,26 +210,42 @@ class ChatAgent:
         executed_calls: list[Awaitable[Any]] = []
         for call in tool_calls:
             function_name = call.function.name
-            function_to_call = find(lambda x: x.__name__ == function_name, self.tools)
-            if function_to_call is None:
+            tool = find(lambda x: x.name == function_name, self.tools)
+            if tool is None:
                 # TODO: handle error
                 continue
-            function_response = function_to_call(*call.function.arguments.values())
+
+            function_to_call = tool.function
+            if inspect.iscoroutinefunction(function_to_call):
+                # Call async function directly
+                function_response = function_to_call(*call.function.arguments.values())
+            else:
+                # Wrap sync function in asyncio.to_thread to make it awaitable
+                function_response = asyncio.to_thread(
+                    function_to_call, *call.function.arguments.values()
+                )
+
             executed_calls.append(function_response)
 
         return executed_calls
 
-    def __create_tool_calls_message(self, tool_calls: list[ToolCallFunction]) -> ToolCallMessage:
+    def __create_tool_calls_message(
+        self, tool_calls: list[ToolCallFunction]
+    ) -> ToolCallMessage:
         """
         Craft a tool call message
 
         :param tool_calls: Tool calls to include in the message
         :return: Crafted tool call message
         """
-        return ToolCallMessage(role=MessageRoleEnum.assistant,
-                               tool_calls=[MessageToolCall(type="function",
-                                                           id=self.model.generate_tool_call_id(),
-                                                           function=ToolCallFunction(name=call.name,
-                                                                                     arguments=call.arguments)) for
-                                           call in
-                                           tool_calls])
+        return ToolCallMessage(
+            role=MessageRoleEnum.assistant,
+            tool_calls=[
+                MessageToolCall(
+                    type="function",
+                    id=self.model.generate_tool_call_id(),
+                    function=ToolCallFunction(name=call.name, arguments=call.arguments),
+                )
+                for call in tool_calls
+            ],
+        )

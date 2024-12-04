@@ -2,14 +2,18 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Literal
 
-from libertai_agents.interfaces.messages import Message, ToolCallFunction, MessageRoleEnum
+from libertai_agents.interfaces.messages import (
+    Message,
+    ToolCallFunction,
+    MessageRoleEnum,
+)
+from libertai_agents.interfaces.tools import Tool
 
 # Disables the error about models not available
 logging.getLogger("transformers").disabled = True
 
 ModelId = Literal[
-    "NousResearch/Hermes-3-Llama-3.1-8B",
-    "mistralai/Mistral-Nemo-Instruct-2407"
+    "NousResearch/Hermes-3-Llama-3.1-8B", "mistralai/Mistral-Nemo-Instruct-2407"
 ]
 
 
@@ -22,7 +26,13 @@ class Model(ABC):
     context_length: int
     include_system_message: bool
 
-    def __init__(self, model_id: ModelId, vm_url: str, context_length: int, include_system_message: bool = True):
+    def __init__(
+        self,
+        model_id: ModelId,
+        vm_url: str,
+        context_length: int,
+        include_system_message: bool = True,
+    ):
         """
         Creates a new instance of a model
 
@@ -49,7 +59,12 @@ class Model(ABC):
         tokens = self.tokenizer.tokenize(content)
         return len(tokens)
 
-    def generate_prompt(self, messages: list[Message], tools: list, system_prompt: str | None = None) -> str:
+    def generate_prompt(
+        self,
+        messages: list[Message],
+        tools: list[Tool],
+        system_prompt: str | None = None,
+    ) -> str:
         """
         Generate the whole chat prompt
 
@@ -58,25 +73,33 @@ class Model(ABC):
         :param tools: Available tools
         :return: Prompt string
         """
-        system_messages = [Message(role=MessageRoleEnum.system,
-                                   content=system_prompt)] if self.include_system_message and system_prompt is not None else []
+        system_messages = (
+            [Message(role=MessageRoleEnum.system, content=system_prompt)]
+            if self.include_system_message and system_prompt is not None
+            else []
+        )
         raw_messages = list(map(lambda x: x.dict(), messages))
 
         for i in range(len(raw_messages)):
             included_messages: list = system_messages + raw_messages[i:]
-            prompt = self.tokenizer.apply_chat_template(conversation=included_messages, tools=tools,
-                                                        tokenize=False,
-                                                        add_generation_prompt=True)
+            prompt = self.tokenizer.apply_chat_template(
+                conversation=included_messages,
+                tools=list(map(lambda x: x.args_schema, tools)),
+                tokenize=False,
+                add_generation_prompt=True,
+            )
             if not isinstance(prompt, str):
                 raise TypeError("Generated prompt isn't a string")
             if self.__count_tokens(prompt) <= self.context_length:
                 return prompt
-        raise ValueError(f"Can't fit messages into the available context length ({self.context_length} tokens)")
+        raise ValueError(
+            f"Can't fit messages into the available context length ({self.context_length} tokens)"
+        )
 
     def generate_tool_call_id(self) -> str | None:
         """
         Generate a random ID for a tool call
-        
+
         :return: A string, or None if this model doesn't require a tool call ID
         """
         return None

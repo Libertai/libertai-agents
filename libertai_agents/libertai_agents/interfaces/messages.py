@@ -5,10 +5,10 @@ from pydantic import BaseModel
 
 
 class MessageRoleEnum(str, Enum):
-    user = 'user'
-    assistant = 'assistant'
-    system = 'system'
-    tool = 'tool'
+    user = "user"
+    assistant = "assistant"
+    system = "system"
+    tool = "tool"
 
 
 class ToolCallFunction(BaseModel):
