@@ -23,16 +23,21 @@ MODELS_CONFIG: dict[ModelId, FullModelConfiguration] = {
     "NousResearch/Hermes-3-Llama-3.1-8B": FullModelConfiguration(
         vm_url="https://curated.aleph.cloud/vm/84df52ac4466d121ef3bb409bb14f315de7be4ce600e8948d71df6485aa5bcc3/completion",
         context_length=4096,
-        constructor=HermesModel),
+        constructor=HermesModel,
+    ),
     "mistralai/Mistral-Nemo-Instruct-2407": FullModelConfiguration(
         vm_url="https://curated.aleph.cloud/vm/2c4ad0bf343fb12924936cbc801732d95ce90f84cd895aa8bee82c0a062815c2/completion",
         context_length=4096,
-        constructor=MistralModel)
+        constructor=MistralModel,
+    ),
 }
 
 
-def get_model(model_id: ModelId, hf_token: str | None = None,
-              custom_configuration: ModelConfiguration | None = None) -> Model:
+def get_model(
+    model_id: ModelId,
+    hf_token: str | None = None,
+    custom_configuration: ModelConfiguration | None = None,
+) -> Model:
     """
     Get one of the available models
 
@@ -46,12 +51,16 @@ def get_model(model_id: ModelId, hf_token: str | None = None,
     full_config = MODELS_CONFIG.get(model_id)
 
     if full_config is None:
-        raise ValueError(f'model_id must be one of {MODEL_IDS}')
+        raise ValueError(f"model_id must be one of {MODEL_IDS}")
 
     if hf_token is not None:
         login(hf_token)
 
     # Using our configuration if the user didn't pass a custom model config
-    configuration = custom_configuration if custom_configuration is not None else full_config
+    configuration = (
+        custom_configuration if custom_configuration is not None else full_config
+    )
 
-    return full_config.constructor(model_id=model_id, **configuration.dict(exclude={'constructor'}))
+    return full_config.constructor(
+        model_id=model_id, **configuration.dict(exclude={"constructor"})
+    )
