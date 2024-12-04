@@ -1,12 +1,25 @@
 from typing import Callable, Any, TYPE_CHECKING
 
+from pydantic.json_schema import GenerateJsonSchema, JsonSchemaMode, JsonSchemaValue
 from pydantic.v1 import BaseModel
+from pydantic_core import CoreSchema
 from transformers.utils import get_json_schema
 from transformers.utils.chat_template_utils import _convert_type_hints_to_json_schema
 
 if TYPE_CHECKING:
     # Importing only for type hinting purposes.
-    from langchain_core.tools import BaseTool
+    from langchain_core.tools import BaseTool  # type: ignore
+
+
+class GenerateToolPropertiesJsonSchema(GenerateJsonSchema):
+    def generate(
+        self, schema: CoreSchema, mode: JsonSchemaMode = "validation"
+    ) -> JsonSchemaValue:
+        json_schema = super().generate(schema, mode=mode)
+        for key in json_schema["properties"].keys():
+            json_schema["properties"][key].pop("title", None)
+        json_schema.pop("title", None)
+        return json_schema
 
 
 class Tool(BaseModel):
@@ -32,8 +45,29 @@ class Tool(BaseModel):
             )
 
         if isinstance(langchain_tool, StructuredTool):
-            # TODO: handle this case
-            raise NotImplementedError("Langchain StructuredTool aren't supported yet")
+            # Particular case
+            structured_langchain_tool: StructuredTool = langchain_tool
+            function_parameters = (
+                structured_langchain_tool.args_schema.model_json_schema(
+                    schema_generator=GenerateToolPropertiesJsonSchema
+                )
+            )
+
+            if structured_langchain_tool.func is None:
+                raise ValueError("Tool function is None, expected a Callable value")
+
+            return cls(
+                name=structured_langchain_tool.name,
+                function=structured_langchain_tool.func,
+                args_schema={
+                    "type": "function",
+                    "function": {
+                        "name": structured_langchain_tool.name,
+                        "description": structured_langchain_tool.description,
+                        "parameters": function_parameters,
+                    },
+                },
+            )
 
         # Extracting function parameters to JSON schema
         function_parameters = _convert_type_hints_to_json_schema(langchain_tool._run)
