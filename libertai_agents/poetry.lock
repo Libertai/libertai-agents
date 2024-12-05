@@ -2748,4 +2748,4 @@ langchain = ["langchain-community"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <3.12"
-content-hash = "3a6514d51a12b744d6e8c6884b2f8ff1cf3877cbde332e67dd18ce885512bc51"
+content-hash = "5c219b04925443039edd019356fdcaea779839a5d870c817de5b63f01c2f0954"

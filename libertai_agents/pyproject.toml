@@ -21,8 +21,7 @@ python = ">=3.11, <3.12"
 transformers = "^4.46.0"
 pydantic = "^2.5.2"
 aiohttp = "^3.10.11"
-fastapi = { extras = ["standard"], version = ">= 0.112, <1.0.0" }
-jinja2 = "^3.1.4"
+fastapi = { extras = ["standard"], version = ">=0.112, <1.0.0" }
 langchain-community = { version = "^0.3.9", optional = true }
 
 [tool.poetry.group.dev.dependencies]
