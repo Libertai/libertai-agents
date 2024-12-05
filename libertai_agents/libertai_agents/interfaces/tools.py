@@ -75,6 +75,16 @@ class Tool(BaseModel):
         function_parameters["properties"].pop("run_manager", None)
         function_parameters["properties"].pop("return", None)
 
+        # Extracting the description from the tool arguments if available
+        for arg_name in function_parameters["properties"].keys():
+            arg_data: dict[str, str] | None = langchain_tool.args.get(arg_name, None)
+            if arg_data is None:
+                continue
+            arg_description = arg_data.get("description", None)
+            if arg_description is None:
+                continue
+            function_parameters["properties"][arg_name]["description"] = arg_description
+
         return cls(
             name=langchain_tool.name,
             function=langchain_tool._run,
