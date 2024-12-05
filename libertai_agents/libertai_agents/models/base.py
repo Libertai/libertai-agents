@@ -1,4 +1,3 @@
-import logging
 from abc import ABC, abstractmethod
 from typing import Literal
 
@@ -8,9 +7,6 @@ from libertai_agents.interfaces.messages import (
     MessageRoleEnum,
 )
 from libertai_agents.interfaces.tools import Tool
-
-# Disables the error about models not available
-logging.getLogger("transformers").disabled = True
 
 ModelId = Literal[
     "NousResearch/Hermes-3-Llama-3.1-8B", "mistralai/Mistral-Nemo-Instruct-2407"
