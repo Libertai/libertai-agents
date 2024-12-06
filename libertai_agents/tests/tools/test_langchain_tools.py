@@ -8,6 +8,7 @@ from langchain_community.utilities.requests import TextRequestsWrapper
 from libertai_agents.interfaces.tools import Tool
 from libertai_agents.utils import find
 
+# TODO: uncomment when https://huggingface.co/spaces/lysandre/hf-model-downloads/discussions/1 is merged
 # def test_langchain_huggingface_hub_tool():
 #     # https://python.langchain.com/docs/integrations/tools/huggingface_tools/
 #     tool = load_huggingface_tool("lysandre/hf-model-downloads")
@@ -73,3 +74,8 @@ def test_langchain_requests_tools():
     libertai_tools = [Tool.from_langchain(t) for t in tools]
     get_tool = find(lambda t: t.name == "requests_get", libertai_tools)
     assert get_tool is not None
+
+
+# TODO: add tests for the following tools:
+# https://python.langchain.com/docs/integrations/tools/nasa/
+# https://python.langchain.com/docs/integrations/tools/openweathermap/
