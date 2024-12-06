@@ -5,6 +5,7 @@ CODE_PATH="/root/libertai-agent"
 DOCKERFILE_PATH="/tmp/libertai-agent.Dockerfile"
 
 # Setup
+apt update
 apt install docker.io unzip -y
 
 # Cleaning previous agent
