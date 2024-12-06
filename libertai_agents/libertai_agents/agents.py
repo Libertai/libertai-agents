@@ -2,7 +2,7 @@ import asyncio
 import inspect
 import json
 from http import HTTPStatus
-from typing import Awaitable, Any, AsyncIterable
+from typing import Any, AsyncIterable, Awaitable
 
 import aiohttp
 from aiohttp import ClientSession
@@ -56,7 +56,7 @@ class ChatAgent:
         if tools is None:
             tools = []
 
-        if len(set(map(lambda x: x.name, tools))) != len(tools):
+        if len({x.name for x in tools}) != len(tools):
             raise ValueError("Tool functions must have different names")
         self.model = model
         self.system_prompt = system_prompt

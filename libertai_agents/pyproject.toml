@@ -33,6 +33,10 @@ pytest-cov = "^6.0.0"
 [tool.poetry.extras]
 langchain = ["langchain-community"]
 
+[tool.ruff]
+lint.select = ["C", "E", "F", "I", "W"]
+lint.ignore = ["E501"]
+
 [tool.pytest.ini_options]
 addopts = "--cov=libertai_agents"
 testpaths = ["tests"]
