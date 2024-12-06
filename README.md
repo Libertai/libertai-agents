@@ -4,6 +4,7 @@
 
 [![pypi](https://img.shields.io/pypi/v/libertai-agents.svg)](https://pypi.org/project/libertai-agents)
 [![python](https://img.shields.io/pypi/pyversions/libertai-agents.svg)](https://pypi.org/project/libertai-agents)
+[![codecov](https://codecov.io/gh/Libertai/libertai-agents/graph/badge.svg?token=AE6F55FE57)](https://codecov.io/gh/Libertai/libertai-agents)
 
 </div>
 
