@@ -3,8 +3,8 @@ from typing import Literal
 
 from libertai_agents.interfaces.messages import (
     Message,
-    ToolCallFunction,
     MessageRoleEnum,
+    ToolCallFunction,
 )
 from libertai_agents.interfaces.tools import Tool
 
@@ -74,13 +74,13 @@ class Model(ABC):
             if self.include_system_message and system_prompt is not None
             else []
         )
-        raw_messages = list(map(lambda x: x.dict(), messages))
+        raw_messages = [x.dict() for x in messages]
 
         for i in range(len(raw_messages)):
             included_messages: list = system_messages + raw_messages[i:]
             prompt = self.tokenizer.apply_chat_template(
                 conversation=included_messages,
-                tools=list(map(lambda x: x.args_schema, tools)),
+                tools=[x.args_schema for x in tools],
                 tokenize=False,
                 add_generation_prompt=True,
             )
