@@ -32,6 +32,7 @@ pytest-cov = "^6.0.0"
 
 [tool.poetry.extras]
 langchain = ["langchain-community"]
+test = ["langchain-community"]
 
 [tool.ruff]
 lint.select = ["C", "E", "F", "I", "W"]
