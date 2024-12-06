@@ -179,7 +179,7 @@ class ChatAgent:
         async for message in self.generate_answer(
             messages, only_final_answer=only_final_answer
         ):
-            yield json.dumps(message.dict(), indent=4)
+            yield json.dumps(message.model_dump(), indent=4)
 
     async def __call_model(self, session: ClientSession, prompt: str) -> str | None:
         """
@@ -189,9 +189,11 @@ class ChatAgent:
         :param prompt: Prompt to give to the model
         :return: String response (if no error)
         """
-        params = LlamaCppParams(prompt=prompt, **self.llamacpp_params.dict())
+        params = LlamaCppParams(prompt=prompt, **self.llamacpp_params.model_dump())
 
-        async with session.post(self.model.vm_url, json=params.dict()) as response:
+        async with session.post(
+            self.model.vm_url, json=params.model_dump()
+        ) as response:
             # TODO: handle errors and retries
             if response.status == HTTPStatus.OK:
                 response_data = await response.json()

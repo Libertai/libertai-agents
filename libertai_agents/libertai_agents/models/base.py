@@ -74,7 +74,7 @@ class Model(ABC):
             if self.include_system_message and system_prompt is not None
             else []
         )
-        raw_messages = [x.dict() for x in messages]
+        raw_messages = [x.model_dump() for x in messages]
 
         for i in range(len(raw_messages)):
             included_messages: list = system_messages + raw_messages[i:]

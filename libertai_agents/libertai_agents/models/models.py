@@ -62,5 +62,5 @@ def get_model(
     )
 
     return full_config.constructor(
-        model_id=model_id, **configuration.dict(exclude={"constructor"})
+        model_id=model_id, **configuration.model_dump(exclude={"constructor"})
     )
