@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.11, <3.12"
+python = "^3.9"
 transformers = "^4.46.0"
 pydantic = "^2.5.2"
 aiohttp = "^3.10.11"
@@ -27,9 +27,15 @@ langchain-community = { version = "^0.3.9", optional = true }
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.11.1"
 ruff = "^0.6.0"
+pytest = "^8.3.4"
+pytest-cov = "^6.0.0"
 
 [tool.poetry.extras]
 langchain = ["langchain-community"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=libertai_agents"
+testpaths = ["tests"]
 
 [build-system]
 requires = ["poetry-core"]

@@ -3,3 +3,8 @@
 
 # Development test file
 /dev.py
+
+# Tests
+.coverage
+/htmlcov
+coverage.xml
