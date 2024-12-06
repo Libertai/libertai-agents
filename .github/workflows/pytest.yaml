@@ -7,6 +7,9 @@ jobs:
   test:
     name: "pytest"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./libertai_agents
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
