@@ -6,5 +6,6 @@
 
 # Tests
 .coverage
+.coverage.*
 /htmlcov
 coverage.xml
