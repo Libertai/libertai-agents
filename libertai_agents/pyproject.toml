@@ -28,6 +28,7 @@ mypy = "^1.11.1"
 ruff = "^0.6.0"
 pytest = "^8.3.4"
 pytest-cov = "^6.0.0"
+pytest-asyncio = "^0.24.0"
 
 [tool.poetry.extras]
 langchain = ["langchain-community"]
@@ -40,6 +41,7 @@ lint.ignore = ["E501"]
 [tool.pytest.ini_options]
 addopts = "--cov=libertai_agents"
 testpaths = ["tests"]
+asyncio_mode = 'auto'
 
 [build-system]
 requires = ["poetry-core"]

@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.fixture()
-def basic_function_for_tool() -> Callable:
+def fake_get_temperature_tool() -> Callable:
     def get_current_temperature(location: str, unit: str) -> float:
         """
         Get the current temperature at a location.
