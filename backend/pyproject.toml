@@ -21,6 +21,10 @@ paramiko = "^3.5.0"
 mypy = "^1.12.0"
 ruff = "^0.7.0"
 
+[tool.ruff]
+lint.select = ["C", "E", "F", "I", "W"]
+lint.ignore = ["E501"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

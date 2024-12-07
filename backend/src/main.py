@@ -7,8 +7,8 @@ import aiohttp
 import paramiko
 from aleph.sdk import AuthenticatedAlephHttpClient
 from aleph.sdk.chains.ethereum import ETHAccount
-from aleph_message.models import Payment, Chain, PaymentType
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from aleph_message.models import Chain, Payment, PaymentType
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from libertai_utils.chains.index import is_signature_valid
 from libertai_utils.interfaces.subscription import Subscription
 from libertai_utils.utils.crypto import decrypt, encrypt
@@ -17,13 +17,13 @@ from starlette.middleware.cors import CORSMiddleware
 from src.config import config
 from src.interfaces.agent import (
     Agent,
-    SetupAgentBody,
-    DeleteAgentBody,
-    UpdateAgentResponse,
-    GetAgentResponse,
-    GetAgentSecretResponse,
-    GetAgentSecretMessage,
     AgentPythonPackageManager,
+    DeleteAgentBody,
+    GetAgentResponse,
+    GetAgentSecretMessage,
+    GetAgentSecretResponse,
+    SetupAgentBody,
+    UpdateAgentResponse,
 )
 from src.utils.agent import fetch_agents
 from src.utils.message import get_view_agent_secret_message
