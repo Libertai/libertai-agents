@@ -1,3 +1,5 @@
+from enum import Enum
+
 from libertai_utils.interfaces.agent import BaseDeleteAgentBody
 from libertai_utils.interfaces.subscription import SubscriptionAccount
 from pydantic import BaseModel, validator
@@ -20,18 +22,19 @@ class SetupAgentBody(DeleteAgentBody):
 
 
 class UpdateAgentResponse(BaseModel):
-    vm_hash: str
+    instance_hash: str
 
 
 class PublicAgentData(BaseModel):
     id: str
     subscription_id: str
-    vm_hash: str | None
+    instance_hash: str
     last_update: int
 
 
 class Agent(PublicAgentData):
     encrypted_secret: str
+    encrypted_ssh_key: str
     tags: list[str]
 
 
@@ -49,3 +52,7 @@ class GetAgentResponse(PublicAgentData):
 
 class GetAgentSecretResponse(BaseModel):
     secret: str
+
+class AgentPythonPackageManager(str, Enum):
+    poetry = "poetry"
+    pip = "pip"
