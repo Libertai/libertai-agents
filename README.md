@@ -1,7 +1,4 @@
-<div align="center">
-    <h1 style="margin-top: 0;">LibertAI Agents</h1>
-</div>
-
+<h1 align="center">LibertAI Agents</h1>
 
 <div align="center">
 
