@@ -1,4 +1,7 @@
-# LibertAI Agents
+<div align="center">
+    <h1 style="margin-top: 0;">LibertAI Agents</h1>
+</div>
+
 
 <div align="center">
 
@@ -7,6 +10,8 @@
 [![codecov](https://codecov.io/gh/Libertai/libertai-agents/graph/badge.svg?token=AE6F55FE57)](https://codecov.io/gh/Libertai/libertai-agents)
 
 </div>
+
+![banner](.github/assets/agents-banner.png)
 
 LibertAI Agents are highly customizable assistants that operates in a decentralized and confidential environment.\
 They can be given tools to perform tasks (search something on the web, make a transaction on-chain...), making them
