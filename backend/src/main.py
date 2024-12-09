@@ -7,7 +7,9 @@ import aiohttp
 import paramiko
 from aleph.sdk import AuthenticatedAlephHttpClient
 from aleph.sdk.chains.ethereum import ETHAccount
-from aleph_message.models import Chain, Payment, PaymentType
+from aleph.sdk.conf import settings
+from aleph_message.models import Chain, Payment, PaymentType, StoreMessage
+from aleph_message.models.execution.environment import HypervisorType
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from libertai_utils.chains.index import is_signature_valid
 from libertai_utils.interfaces.subscription import Subscription
@@ -26,6 +28,7 @@ from src.interfaces.agent import (
     UpdateAgentResponse,
 )
 from src.utils.agent import fetch_agents
+from src.utils.aleph import fetch_instance_ip
 from src.utils.message import get_view_agent_secret_message
 from src.utils.ssh import generate_ssh_key_pair
 
@@ -52,19 +55,35 @@ async def setup(body: SetupAgentBody) -> None:
     encrypted_secret = encrypt(secret, config.ALEPH_SENDER_PK)
 
     private_key, public_key = generate_ssh_key_pair()
-    encrypted_private_key = encrypt(private_key, config.ALEPH_SENDER_SK)
+    encrypted_private_key = encrypt(private_key, config.ALEPH_SENDER_PK)
+
+    rootfs = settings.UBUNTU_22_QEMU_ROOTFS_ID
 
     aleph_account = ETHAccount(config.ALEPH_SENDER_SK)
     async with AuthenticatedAlephHttpClient(
         account=aleph_account, api_server=config.ALEPH_API_URL
     ) as client:
+        rootfs_message: StoreMessage = await client.get_message(
+            item_hash=rootfs, message_type=StoreMessage
+        )
+        rootfs_size = (
+            rootfs_message.content.size
+            if rootfs_message.content.size is not None
+            else settings.DEFAULT_ROOTFS_SIZE
+        )
+
         instance_message, _status = await client.create_instance(
-            rootfs="TODO",
-            rootfs_size=0,
+            rootfs=rootfs,
+            rootfs_size=rootfs_size,
+            hypervisor=HypervisorType.qemu,
             payment=Payment(chain=Chain.ETH, type=PaymentType.hold, receiver=None),
             channel=config.ALEPH_CHANNEL,
             address=config.ALEPH_OWNER,
             ssh_keys=[public_key],
+            metadata={"name": agent_id},
+            vcpus=settings.DEFAULT_VM_VCPUS,
+            memory=settings.DEFAULT_INSTANCE_MEMORY,
+            sync=True,
         )
 
         agent = Agent(
@@ -182,6 +201,9 @@ async def update(
     ssh_private_key = decrypt(agent.encrypted_ssh_key, config.ALEPH_SENDER_SK)
 
     # TODO: get hostname using instance_hash
+    scheduler_response = fetch_instance_ip(agent.instance_hash)
+    print(scheduler_response)
+    return UpdateAgentResponse(instance_hash="TODO")
     hostname = "2a01:240:ad00:2100:3:89cf:401:4871"
 
     # TODO: store link elsewhere, use main version and take as optional parameter in route
