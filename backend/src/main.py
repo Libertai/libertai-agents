@@ -177,6 +177,9 @@ def get_agent_secret_message(agent_id: str) -> GetAgentSecretMessage:
 async def update(
     agent_id: str,
     secret: str = Form(),
+    deploy_script_url: str = Form(
+        default="https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/deployment-instances/deployment/deploy.sh"
+    ),
     python_version: str = Form(),
     package_manager: AgentPythonPackageManager = Form(),
     code: UploadFile = File(...),
@@ -200,14 +203,14 @@ async def update(
 
     ssh_private_key = decrypt(agent.encrypted_ssh_key, config.ALEPH_SENDER_SK)
 
-    # TODO: get hostname using instance_hash
-    scheduler_response = fetch_instance_ip(agent.instance_hash)
-    print(scheduler_response)
-    return UpdateAgentResponse(instance_hash="TODO")
-    hostname = "2a01:240:ad00:2100:3:89cf:401:4871"
-
-    # TODO: store link elsewhere, use main version and take as optional parameter in route
-    SCRIPT_URL = "https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/deployment-instances/deployment/deploy.sh"
+    try:
+        hostname = await fetch_instance_ip(agent.instance_hash)
+        print(hostname)
+    except ValueError:
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            detail="Instance IPv6 not found, it's probably not allocated yet.",
+        )
 
     # Create a Paramiko SSH client
     ssh_client = paramiko.SSHClient()
@@ -230,7 +233,7 @@ async def update(
 
     # Execute a command
     _stdin, stdout, stderr = ssh_client.exec_command(
-        f"wget {SCRIPT_URL} -O /tmp/deploy-agent.sh -q --no-cached && chmod +x /tmp/deploy-agent.sh && /tmp/deploy-agent.sh {python_version} {package_manager.value}"
+        f"wget {deploy_script_url} -O /tmp/deploy-agent.sh -q --no-cached && chmod +x /tmp/deploy-agent.sh && /tmp/deploy-agent.sh {python_version} {package_manager.value}"
     )
 
     output = stdout.read().decode("utf-8")
@@ -262,7 +265,7 @@ async def update(
             channel=config.ALEPH_CHANNEL,
         )
 
-    return UpdateAgentResponse(instance_hash="TODO")
+    return UpdateAgentResponse(instance_hash=hostname)
 
 
 @app.delete("/agent", description="Remove an agent on subscription end")
