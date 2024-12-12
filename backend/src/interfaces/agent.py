@@ -21,10 +21,6 @@ class SetupAgentBody(DeleteAgentBody):
     account: SubscriptionAccount
 
 
-class UpdateAgentResponse(BaseModel):
-    instance_hash: str
-
-
 class PublicAgentData(BaseModel):
     id: str
     subscription_id: str
@@ -47,11 +43,12 @@ class GetAgentSecretMessage(BaseModel):
 
 
 class GetAgentResponse(PublicAgentData):
-    pass
+    instance_ip: str | None
 
 
 class GetAgentSecretResponse(BaseModel):
     secret: str
+
 
 class AgentPythonPackageManager(str, Enum):
     poetry = "poetry"

@@ -13,7 +13,7 @@ package-mode = false
 python = "^3.12"
 fastapi = { extras = ["standard"], version = "^0.115.2" }
 aleph-sdk-python = "^1.1.0"
-libertai-utils = "0.0.8"
+libertai-utils = "0.0.9"
 setuptools = "^75.4.0"
 paramiko = "^3.5.0"
 
