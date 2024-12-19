@@ -236,22 +236,13 @@ async def update(
     sftp.putfo(io.BytesIO(content), remote_path)
     sftp.close()
 
-    # Execute a command
-    _stdin, stdout, stderr = ssh_client.exec_command(
+    # Execute the command
+    ssh_client.exec_command(
         f"wget {deploy_script_url} -O /tmp/deploy-agent.sh -q --no-cache && chmod +x /tmp/deploy-agent.sh && /tmp/deploy-agent.sh {python_version} {package_manager.value}"
     )
 
-    output = stdout.read().decode("utf-8")
-    error = stderr.read().decode("utf-8")
     # Close the connection
     ssh_client.close()
-
-    print("Command Output:")
-    print(output)
-
-    if error:
-        print("Command Error:")
-        print(error)
 
     # Register the program
     aleph_account = ETHAccount(config.ALEPH_SENDER_SK)
