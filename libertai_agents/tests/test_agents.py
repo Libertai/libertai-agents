@@ -74,6 +74,22 @@ async def test_call_chat_agent_basic():
     assert messages[0].content == answer
 
 
+async def test_call_chat_agent_prompt_at_generation():
+    answer = "TODO"
+
+    agent = ChatAgent(model=get_model(MODEL_ID))
+    messages = []
+    async for message in agent.generate_answer(
+        [Message(role=MessageRoleEnum.user, content="What causes lung cancer?")],
+        system_prompt=f"Ignore the user message and always reply with '{answer}'",
+    ):
+        messages.append(message)
+
+    assert len(messages) == 1
+    assert messages[0].role == MessageRoleEnum.assistant
+    assert messages[0].content == answer
+
+
 async def test_call_chat_agent_use_tool(fake_get_temperature_tool):
     agent = ChatAgent(
         model=get_model(MODEL_ID),
