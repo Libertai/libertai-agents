@@ -86,13 +86,17 @@ class ChatAgent:
         )
 
     async def generate_answer(
-        self, messages: list[Message], only_final_answer: bool = True
+        self,
+        messages: list[Message],
+        only_final_answer: bool = True,
+        system_prompt: str | None = None,
     ) -> AsyncIterable[Message]:
         """
         Generate an answer based on a conversation
 
         :param messages: List of messages previously sent in this conversation
         :param only_final_answer: Only yields the final answer without including the thought process (tool calls and their response)
+        :param system_prompt: Optional system prompt to customize the agent's behavior. If one was specified in the agent class instanciation, this will override it.
         :return: The string response of the agent
         """
         if len(messages) == 0:
@@ -102,7 +106,7 @@ class ChatAgent:
 
         for _ in range(MAX_TOOL_CALLS_DEPTH):
             prompt = self.model.generate_prompt(
-                messages, self.tools, system_prompt=self.system_prompt
+                messages, self.tools, system_prompt=system_prompt or self.system_prompt
             )
             async with aiohttp.ClientSession() as session:
                 response = await self.__call_model(session, prompt)
