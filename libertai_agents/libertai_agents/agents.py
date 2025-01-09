@@ -93,6 +93,7 @@ class ChatAgent:
         messages: list[Message],
         only_final_answer: bool = True,
         system_prompt: str | None = None,
+        session: ClientSession | None = None,
     ) -> AsyncIterable[Message]:
         """
         Generate an answer based on a conversation
@@ -109,23 +110,26 @@ class ChatAgent:
             prompt = self.model.generate_prompt(
                 messages, self.tools, system_prompt=system_prompt or self.system_prompt
             )
-            async with aiohttp.ClientSession() as session:
+            if session is None:
+                async with aiohttp.ClientSession() as session:
+                    response = await self.__call_model(session, prompt)
+            else:
                 response = await self.__call_model(session, prompt)
 
-                if response is None:
-                    # TODO: handle error correctly
-                    raise ValueError("Model didn't respond")
+            if response is None:
+                # TODO: handle error correctly
+                raise ValueError("Model didn't respond")
 
                 tool_calls = self.model.extract_tool_calls_from_response(response)
                 if len(tool_calls) == 0:
                     yield Message(role="assistant", content=response)
                     return
 
-                # Executing the detected tool calls
-                tool_calls_message = self.__create_tool_calls_message(tool_calls)
-                messages.append(tool_calls_message)
-                if not only_final_answer:
-                    yield tool_calls_message
+            # Executing the detected tool calls
+            tool_calls_message = self.__create_tool_calls_message(tool_calls)
+            messages.append(tool_calls_message)
+            if not only_final_answer:
+                yield tool_calls_message
 
                 executed_calls = self.__execute_tool_calls(
                     tool_calls_message.tool_calls
