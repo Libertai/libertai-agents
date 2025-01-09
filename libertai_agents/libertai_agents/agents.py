@@ -62,6 +62,7 @@ class ChatAgent:
         self.system_prompt = system_prompt
         self.tools = tools
         self.llamacpp_params = llamacpp_params
+        self.call_session = None
 
         if expose_api:
             # Define API routes
@@ -160,6 +161,9 @@ class ChatAgent:
         Generate an answer based on an existing conversation.
         The response messages can be streamed or sent in a single block.
         """
+        if self.call_session is None:
+            self.call_session = ClientSession()
+
         if stream:
             return StreamingResponse(
                 self.__dump_api_generate_streamed_answer(
@@ -170,7 +174,7 @@ class ChatAgent:
 
         response_messages: list[Message] = []
         async for message in self.generate_answer(
-            messages, only_final_answer=only_final_answer
+            messages, only_final_answer=only_final_answer, session=self.call_session
         ):
             response_messages.append(message)
         return response_messages
@@ -185,8 +189,11 @@ class ChatAgent:
         :param only_final_answer: Param to pass to generate_answer
         :return: Iterable of each messages from generate_answer dumped to JSON
         """
+        if self.call_session is None:
+            self.call_session = ClientSession()
+
         async for message in self.generate_answer(
-            messages, only_final_answer=only_final_answer
+            messages, only_final_answer=only_final_answer, session=self.call_session
         ):
             yield json.dumps(message.model_dump(), indent=4)
 
