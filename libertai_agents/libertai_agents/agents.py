@@ -112,8 +112,8 @@ class ChatAgent:
                 messages, self.tools, system_prompt=system_prompt or self.system_prompt
             )
             if session is None:
-                async with aiohttp.ClientSession() as session:
-                    response = await self.__call_model(session, prompt)
+                async with aiohttp.ClientSession() as local_session:
+                    response = await self.__call_model(local_session, prompt)
             else:
                 response = await self.__call_model(session, prompt)
 
