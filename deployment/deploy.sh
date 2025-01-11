@@ -4,6 +4,15 @@ ZIP_PATH="/tmp/libertai-agent.zip"
 CODE_PATH="/root/libertai-agent"
 DOCKERFILE_PATH="/tmp/libertai-agent.Dockerfile"
 
+case "$3" in
+    fastapi)
+        ENTRYPOINT="fastapi run src/main.py"
+        ;;
+    python)
+        ENTRYPOINT="python -m src.main"
+        ;;
+esac
+
 # Setup
 apt update
 apt install docker.io unzip -y
@@ -18,7 +27,8 @@ wget https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/
 docker build $CODE_PATH \
   -f $DOCKERFILE_PATH \
   -t libertai-agent \
-  --build-arg PYTHON_VERSION=$1
+  --build-arg PYTHON_VERSION=$1 \
+  --build-arg ENTRYPOINT=$ENTRYPOINT
 docker run --name libertai-agent -p 8000:8000 -d libertai-agent
 
 # Cleanup

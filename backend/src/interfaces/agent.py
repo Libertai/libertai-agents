@@ -50,6 +50,12 @@ class GetAgentSecretResponse(BaseModel):
     secret: str
 
 
+# TODO: move the agent types in utils package once stable
 class AgentPythonPackageManager(str, Enum):
     poetry = "poetry"
     pip = "pip"
+
+
+class AgentUsageType(str, Enum):
+    fastapi = "fastapi"
+    python = "python"
