@@ -1,4 +1,5 @@
 ARG PYTHON_VERSION=3.11
+ARG ENTRYPOINT="fastapi run src/main.py"
 
 FROM python:${PYTHON_VERSION}-slim
 
@@ -12,4 +13,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["fastapi", "run", "src/main.py"]
+ENTRYPOINT ${ENTRYPOINT}

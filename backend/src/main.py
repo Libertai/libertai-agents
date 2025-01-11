@@ -21,6 +21,7 @@ from src.config import config
 from src.interfaces.agent import (
     Agent,
     AgentPythonPackageManager,
+    AgentUsageType,
     DeleteAgentBody,
     GetAgentResponse,
     GetAgentSecretMessage,
@@ -184,9 +185,10 @@ async def update(
     agent_id: str,
     secret: str = Form(),
     deploy_script_url: str = Form(
-        default="https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/deployment-instances/deployment/deploy.sh"
+        default="https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/instances/deployment/deploy.sh"
     ),
     python_version: str = Form(),
+    usage_type: AgentUsageType = Form(),
     package_manager: AgentPythonPackageManager = Form(),
     code: UploadFile = File(...),
 ) -> UpdateAgentResponse:
@@ -238,7 +240,7 @@ async def update(
 
     # Execute the command
     ssh_client.exec_command(
-        f"wget {deploy_script_url} -O /tmp/deploy-agent.sh -q --no-cache && chmod +x /tmp/deploy-agent.sh && /tmp/deploy-agent.sh {python_version} {package_manager.value}"
+        f"wget {deploy_script_url} -O /tmp/deploy-agent.sh -q --no-cache && chmod +x /tmp/deploy-agent.sh && /tmp/deploy-agent.sh {python_version} {package_manager.value} {usage_type.value}"
     )
 
     # Close the connection
