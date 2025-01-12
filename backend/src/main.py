@@ -266,6 +266,10 @@ async def update(
     return UpdateAgentResponse(instance_ip=hostname)
 
 
+# TODO: add a redeploy route to forget the previous instance and setup again the agent's instance (in case instance allocation is failed)
+# accessible only with secret, or maybe admin ?
+
+
 @app.delete("/agent", description="Remove an agent on subscription end")
 async def delete(body: DeleteAgentBody):
     agents = await fetch_agents([body.subscription_id])

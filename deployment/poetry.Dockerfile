@@ -1,7 +1,8 @@
-ARG PYTHON_VERSION=3.11
-ARG ENTRYPOINT="fastapi run src/main.py"
+ARG PYTHON_VERSION=3.12
 
 FROM python:${PYTHON_VERSION}-slim
+
+ARG ENTRYPOINT="fastapi run src/main.py"
 
 WORKDIR /app
 
