@@ -18,6 +18,3 @@ def test_function_new_union_style_param_tool(
         == fake_get_temperature_with_new_union_style_param_tool.__name__
     )
     assert libertai_tool.args_schema
-
-
-# TODO: add test with Python 3.10+ union style when https://github.com/huggingface/transformers/pull/35103 merged + new release
