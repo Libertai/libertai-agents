@@ -12,7 +12,6 @@ def test_function_new_union_style_param_tool(
     libertai_tool = Tool.from_function(
         fake_get_temperature_with_new_union_style_param_tool
     )
-    print(libertai_tool.args_schema)
     assert (
         libertai_tool.name
         == fake_get_temperature_with_new_union_style_param_tool.__name__

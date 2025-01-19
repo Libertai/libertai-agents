@@ -228,7 +228,7 @@ class ChatAgent:
             else:
                 # Wrap sync function in asyncio.to_thread to make it awaitable
                 function_response = asyncio.to_thread(
-                    function_to_call, *call.function.arguments.values()
+                    function_to_call, **call.function.arguments
                 )
 
             executed_calls.append(function_response)
