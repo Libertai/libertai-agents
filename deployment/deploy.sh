@@ -27,9 +27,8 @@ wget https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/
 docker build $CODE_PATH \
   -f $DOCKERFILE_PATH \
   -t libertai-agent \
-  --build-arg PYTHON_VERSION=$1 \
-  --build-arg ENTRYPOINT=$ENTRYPOINT
-docker run --name libertai-agent -p 8000:8000 -d libertai-agent
+  --build-arg PYTHON_VERSION=$1
+docker run --name libertai-agent -p 8000:8000 -d libertai-agent $ENTRYPOINT
 
 # Cleanup
 rm -f $ZIP_PATH
