@@ -23,7 +23,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'poetry'
       - name: Install dependencies
-        run: poetry install -E test
+        run: poetry install
       - name: Run tests with coverage report
         run: poetry run pytest --cov-report=xml --junitxml=junit.xml
       - name: Upload results to Codecov

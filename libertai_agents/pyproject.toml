@@ -23,19 +23,25 @@ python = "^3.10"
 transformers = "^4.48.0"
 pydantic = "^2.5.2"
 aiohttp = "^3.10.11"
-fastapi = { extras = ["standard"], version = ">=0.112, <1.0.0" }
+fastapi = { version = ">=0.112, <1.0.0", extras = ["standard"] }
 langchain-community = { version = "^0.3.9", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.11.1"
 ruff = "^0.6.0"
+
+[tool.poetry.group.test.dependencies]
 pytest = "^8.3.4"
 pytest-cov = "^6.0.0"
 pytest-asyncio = "^0.24.0"
+langchain-community = "^0.3.9"
+goat-sdk = "^0.1.2"
+goat-sdk-adapter-langchain = "^0.1.0"
+goat-sdk-wallet-web3 = "^0.1.1"
+web3 = "^6.20.3"
 
 [tool.poetry.extras]
 langchain = ["langchain-community"]
-test = ["langchain-community"]
 
 [tool.ruff]
 lint.select = ["C", "E", "F", "I", "W"]
