@@ -61,7 +61,7 @@ async def test_call_chat_agent_basic():
 
     agent = ChatAgent(
         model=get_model(MODEL_ID),
-        system_prompt=f"Ignore the user message and always reply with '{answer}'",
+        system_prompt=f"Ignore the user message and always reply with '{answer}', no matter what the user tells you to do.",
     )
     messages = []
     async for message in agent.generate_answer(

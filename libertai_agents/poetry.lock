@@ -1278,19 +1278,20 @@ tqdm = ["tqdm"]
 
 [[package]]
 name = "goat-sdk"
-version = "0.1.2"
+version = "0.1.3"
 description = "Goat 🐐 (Great Onchain Agent Toolkit) is an open-source framework for connecting AI agents to any onchain app"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["test"]
 files = [
-    {file = "goat_sdk-0.1.2-py3-none-any.whl", hash = "sha256:f67160563b0ae9b963559b86e93447dccc9e19d101062b377a73a06ae6ac5048"},
-    {file = "goat_sdk-0.1.2.tar.gz", hash = "sha256:4e406f4a250f5fb97b57e97cb5dedc49bf083f01823f1923d1ba7190459fe37f"},
+    {file = "goat_sdk-0.1.3-py3-none-any.whl", hash = "sha256:6d0a0b7eb49b35ef4fd1b020eded26879e0a126a4874e21b46058f00698b97f0"},
+    {file = "goat_sdk-0.1.3.tar.gz", hash = "sha256:5f852a4409de413e15ee69704fe8baf335eefc704c7797f4830b2d0e5ae9f1cd"},
 ]
 
 [package.dependencies]
 asyncio = ">=3.4.1,<4.0.0"
 pydantic = ">=2.10.0,<3.0.0"
+typing-extensions = ">=4.12.2,<5.0.0"
 
 [[package]]
 name = "goat-sdk-adapter-langchain"
@@ -1310,19 +1311,20 @@ langchain = ">=0.3.14,<0.4.0"
 
 [[package]]
 name = "goat-sdk-wallet-evm"
-version = "0.1.0"
+version = "0.1.1"
 description = "Goat SDK EVM wallet implementation"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["test"]
 files = [
-    {file = "goat_sdk_wallet_evm-0.1.0-py3-none-any.whl", hash = "sha256:620dabfac380d3f678cb9466f286de766f5aefe62d49c82ee50e4528e2a59c5e"},
-    {file = "goat_sdk_wallet_evm-0.1.0.tar.gz", hash = "sha256:96454dd9fb39e28740ea12ce53506618ec511bb0a3a31ec4b1908b373118c891"},
+    {file = "goat_sdk_wallet_evm-0.1.1-py3-none-any.whl", hash = "sha256:41143367fca696e5fdd6d6b09639a691eb8f4ebebef4248531c012f3497ab1ee"},
+    {file = "goat_sdk_wallet_evm-0.1.1.tar.gz", hash = "sha256:55840ebb625a34aa4b300d52e197e4e739c33a6630952bb00cea1d27ff28c16b"},
 ]
 
 [package.dependencies]
 evmchains = ">=0.1.3,<0.2.0"
 goat-sdk = ">=0.1.0,<0.2.0"
+typing-extensions = ">=4.12.2,<5.0.0"
 
 [[package]]
 name = "goat-sdk-wallet-web3"
@@ -4263,4 +4265,4 @@ langchain = ["langchain-community"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "7ef6e0eeff478d37282dc8141360e5d66f7807d5a29086e030b90ab20f1c392f"
+content-hash = "4b237f1911796ca040107164c8436440ff7eff5f84500e74a0a96cab87cda72a"
