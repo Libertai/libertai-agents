@@ -77,6 +77,9 @@ class ChatAgent:
             self.app = FastAPI(title="LibertAI ChatAgent")
             self.app.include_router(router)
 
+    def __repr__(self):
+        return f"ChatAgent(model={self.model.model_id})"
+
     def get_model_information(self) -> ModelInformation:
         """
         Get information about the model powering this agent

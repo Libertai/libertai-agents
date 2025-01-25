@@ -1,10 +1,11 @@
 import pytest
 
 from libertai_agents.models import Model, get_model
+from tests.utils.models import get_random_model_id
 
 
 def test_get_model_basic():
-    model = get_model("NousResearch/Hermes-3-Llama-3.1-8B")
+    model = get_model(get_random_model_id())
 
     assert isinstance(model, Model)
 

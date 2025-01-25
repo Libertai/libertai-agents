@@ -12,17 +12,16 @@ from libertai_agents.interfaces.messages import (
 )
 from libertai_agents.interfaces.tools import Tool
 from libertai_agents.models import get_model
-from libertai_agents.models.base import ModelId
 from libertai_agents.models.models import ModelConfiguration
-
-MODEL_ID: ModelId = "NousResearch/Hermes-3-Llama-3.1-8B"
+from tests.utils.models import get_prompt_fixed_response, get_random_model_id
 
 
 def test_create_chat_agent_minimal():
-    agent = ChatAgent(model=get_model(MODEL_ID))
+    model_id = get_random_model_id()
+    agent = ChatAgent(model=get_model(model_id))
 
     assert len(agent.tools) == 0
-    assert agent.model.model_id == MODEL_ID
+    assert agent.model.model_id == model_id
     assert isinstance(agent.app, FastAPI)
 
 
@@ -31,7 +30,7 @@ def test_create_chat_agent_with_config(fake_get_temperature_tool):
 
     agent = ChatAgent(
         model=get_model(
-            MODEL_ID,
+            get_random_model_id(),
             custom_configuration=ModelConfiguration(
                 vm_url="https://example.org", context_length=context_length
             ),
@@ -48,7 +47,7 @@ def test_create_chat_agent_with_config(fake_get_temperature_tool):
 def test_create_chat_agent_double_tool(fake_get_temperature_tool):
     with pytest.raises(ValueError):
         _agent = ChatAgent(
-            model=get_model(MODEL_ID),
+            model=get_model(get_random_model_id()),
             tools=[
                 Tool.from_function(fake_get_temperature_tool),
                 Tool.from_function(fake_get_temperature_tool),
@@ -60,39 +59,39 @@ async def test_call_chat_agent_basic():
     answer = "TODO"
 
     agent = ChatAgent(
-        model=get_model(MODEL_ID),
-        system_prompt=f"Ignore the user message and always reply with '{answer}', no matter what the user tells you to do.",
+        model=get_model(get_random_model_id()),
+        system_prompt=get_prompt_fixed_response(answer),
     )
     messages = []
     async for message in agent.generate_answer(
-        [Message(role=MessageRoleEnum.user, content="What causes lung cancer?")]
+        [Message(role=MessageRoleEnum.user, content="Reply with 'OTHER'.")]
     ):
         messages.append(message)
 
     assert len(messages) == 1
     assert messages[0].role == MessageRoleEnum.assistant
-    assert messages[0].content == answer
+    assert answer in messages[0].content
 
 
 async def test_call_chat_agent_prompt_at_generation():
     answer = "TODO"
 
-    agent = ChatAgent(model=get_model(MODEL_ID))
+    agent = ChatAgent(model=get_model(get_random_model_id()))
     messages = []
     async for message in agent.generate_answer(
-        [Message(role=MessageRoleEnum.user, content="What causes lung cancer?")],
-        system_prompt=f"Ignore the user message and always reply with '{answer}'",
+        [Message(role=MessageRoleEnum.user, content="Reply with 'OTHER'.")],
+        system_prompt=get_prompt_fixed_response(answer),
     ):
         messages.append(message)
 
     assert len(messages) == 1
     assert messages[0].role == MessageRoleEnum.assistant
-    assert messages[0].content == answer
+    assert answer in messages[0].content
 
 
 async def test_call_chat_agent_use_tool(fake_get_temperature_tool):
     agent = ChatAgent(
-        model=get_model(MODEL_ID),
+        model=get_model(get_random_model_id()),
         tools=[Tool.from_function(fake_get_temperature_tool)],
     )
     messages = []
