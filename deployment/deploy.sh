@@ -19,7 +19,8 @@ apt install docker.io unzip -y
 
 # Cleaning previous agent
 rm -rf $CODE_PATH
-docker stop libertai-agent && docker rm $_
+docker stop libertai-agent
+docker rm libertai-agent
 
 # Deploying the new agent
 unzip $ZIP_PATH -d $CODE_PATH
