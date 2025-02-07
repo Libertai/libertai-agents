@@ -239,7 +239,7 @@ async def update(
     sftp.close()
 
     # Execute the command
-    ssh_client.exec_command(
+    _stdin, _stdout, stderr = ssh_client.exec_command(
         f"wget {deploy_script_url} -O /tmp/deploy-agent.sh -q --no-cache && chmod +x /tmp/deploy-agent.sh && /tmp/deploy-agent.sh {python_version} {package_manager.value} {usage_type.value}"
     )
 
@@ -263,7 +263,7 @@ async def update(
             channel=config.ALEPH_CHANNEL,
         )
 
-    return UpdateAgentResponse(instance_ip=hostname)
+    return UpdateAgentResponse(instance_ip=hostname, error_log=stderr.read())
 
 
 # TODO: add a redeploy route to forget the previous instance and setup again the agent's instance (in case instance allocation is failed)

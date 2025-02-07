@@ -1,9 +1,19 @@
+networks:
+  my_ipv6_network:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: "2001:db8:1::/64"
+
 services:
   agents-api:
     build:
       dockerfile: ./Dockerfile
     container_name: libertai-agents
     restart: unless-stopped
+    networks:
+      my_ipv6_network:
+        ipv6_address: "2001:db8:1::100"
     ports:
       - "8082:8000"
     env_file:
