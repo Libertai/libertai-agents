@@ -242,6 +242,8 @@ async def update(
     _stdin, _stdout, stderr = ssh_client.exec_command(
         f"wget {deploy_script_url} -O /tmp/deploy-agent.sh -q --no-cache && chmod +x /tmp/deploy-agent.sh && /tmp/deploy-agent.sh {python_version} {package_manager.value} {usage_type.value}"
     )
+    # Waiting for the command to complete to get error logs
+    stderr.channel.recv_exit_status()
 
     # Close the connection
     ssh_client.close()

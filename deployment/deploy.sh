@@ -14,8 +14,8 @@ case "$3" in
 esac
 
 # Setup
-apt update
-apt install docker.io unzip -y
+apt-get update
+apt-get install docker.io unzip -y
 
 # Cleaning previous agent
 rm -rf $CODE_PATH
