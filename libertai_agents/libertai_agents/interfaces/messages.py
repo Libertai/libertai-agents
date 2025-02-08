@@ -1,14 +1,6 @@
-from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
-
-
-class MessageRoleEnum(str, Enum):
-    user = "user"
-    assistant = "assistant"
-    system = "system"
-    tool = "tool"
 
 
 class ToolCallFunction(BaseModel):
@@ -23,7 +15,7 @@ class MessageToolCall(BaseModel):
 
 
 class Message(BaseModel):
-    role: MessageRoleEnum
+    role: str
     content: Optional[str] = None
 
 

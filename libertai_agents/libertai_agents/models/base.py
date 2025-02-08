@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Literal
 
+from jinja2 import TemplateError
+
 from libertai_agents.interfaces.messages import (
     Message,
-    MessageRoleEnum,
     ToolCallFunction,
 )
 from libertai_agents.interfaces.tools import Tool
@@ -20,14 +21,12 @@ class Model(ABC):
     model_id: ModelId
     vm_url: str
     context_length: int
-    include_system_message: bool
 
     def __init__(
         self,
         model_id: ModelId,
         vm_url: str,
         context_length: int,
-        include_system_message: bool = True,
     ):
         """
         Creates a new instance of a model
@@ -35,7 +34,6 @@ class Model(ABC):
         :param model_id: HuggingFace ID of the model
         :param vm_url: URL of the completion endpoint
         :param context_length: Number of tokens allowed
-        :param include_system_message: Define if a system message is supported for this model
         """
         from transformers import AutoTokenizer
 
@@ -43,7 +41,6 @@ class Model(ABC):
         self.model_id = model_id
         self.vm_url = vm_url
         self.context_length = context_length
-        self.include_system_message = include_system_message
 
     def __count_tokens(self, content: str) -> int:
         """
@@ -70,43 +67,35 @@ class Model(ABC):
         :return: Prompt string
         """
         system_messages = (
-            [Message(role=MessageRoleEnum.system, content=system_prompt)]
-            if self.include_system_message and system_prompt is not None
+            [Message(role="system", content=system_prompt)]
+            if system_prompt is not None
             else []
         )
         raw_messages = [x.model_dump() for x in messages]
 
-        prompt = (
-            self.tokenizer.apply_chat_template(
-                conversation=system_messages,
-                tools=[x.args_schema for x in tools],
-                tokenize=False,
-                add_generation_prompt=True,
-            )
-            if len(system_messages) != 0
-            else ""
-        )
-        if self.__count_tokens(prompt) > self.context_length:
-            raise ValueError(
-                f"Can't fit system messages into the available context length ({self.context_length} tokens)"
-            )
-
-        # Adding as many messages as we can fit into the context, starting from the last ones
-        for i in reversed(range(len(raw_messages))):
-            included_messages: list = system_messages + raw_messages[i:]
-            new_prompt = self.tokenizer.apply_chat_template(
-                conversation=included_messages,
-                tools=[x.args_schema for x in tools],
-                tokenize=False,
-                add_generation_prompt=True,
-            )
+        # Adding as many messages as we can fit into the context, starting from all of them and remove older ones if needed
+        for i in range(len(raw_messages)):
+            try:
+                prompt = self.tokenizer.apply_chat_template(
+                    conversation=system_messages + raw_messages[i:],
+                    tools=[x.args_schema for x in tools] if len(tools) > 0 else None,
+                    tokenize=False,
+                    add_generation_prompt=True,
+                )
+            except TemplateError:
+                # Some models (like mistralai/Mistral-Nemo-Instruct-2407) have strict templating restrictions,
+                # removing messages can cause the conversation to start by an assistant message, which is forbidden.
+                # If it happens we just continue to try with the next messages
+                continue
             if not isinstance(prompt, str):
                 raise TypeError("Generated prompt isn't a string")
-            if self.__count_tokens(new_prompt) >= self.context_length:
-                return prompt
-            prompt = new_prompt
 
-        return prompt
+            if self.__count_tokens(prompt) <= self.context_length:
+                return prompt
+
+        raise ValueError(
+            f"Can't fit system message and the last message into the available context length ({self.context_length} tokens)"
+        )
 
     def generate_tool_call_id(self) -> str | None:
         """

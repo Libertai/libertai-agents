@@ -15,7 +15,6 @@ from libertai_agents.interfaces.llamacpp import (
 )
 from libertai_agents.interfaces.messages import (
     Message,
-    MessageRoleEnum,
     MessageToolCall,
     ToolCallFunction,
     ToolCallMessage,
@@ -104,8 +103,6 @@ class ChatAgent:
         """
         if len(messages) == 0:
             raise ValueError("No previous message to respond to")
-        if messages[-1].role not in [MessageRoleEnum.user, MessageRoleEnum.tool]:
-            raise ValueError("Last message is not from the user or a tool response")
 
         for _ in range(MAX_TOOL_CALLS_DEPTH):
             prompt = self.model.generate_prompt(
@@ -120,7 +117,7 @@ class ChatAgent:
 
                 tool_calls = self.model.extract_tool_calls_from_response(response)
                 if len(tool_calls) == 0:
-                    yield Message(role=MessageRoleEnum.assistant, content=response)
+                    yield Message(role="assistant", content=response)
                     return
 
                 # Executing the detected tool calls
@@ -135,7 +132,7 @@ class ChatAgent:
                 results = await asyncio.gather(*executed_calls)
                 tool_results_messages: list[Message] = [
                     ToolResponseMessage(
-                        role=MessageRoleEnum.tool,
+                        role="tool",
                         name=call.function.name,
                         tool_call_id=call.id,
                         content=str(results[i]),
@@ -248,7 +245,7 @@ class ChatAgent:
         :return: Crafted tool call message
         """
         return ToolCallMessage(
-            role=MessageRoleEnum.assistant,
+            role="assistant",
             tool_calls=[
                 MessageToolCall(
                     type="function",
