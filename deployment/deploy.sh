@@ -15,7 +15,14 @@ esac
 
 # Setup
 apt-get update
-apt-get install docker.io unzip -y
+apt-get install unzip -y
+if ! command -v docker &> /dev/null; then
+    # Docker installation when not already present
+    curl -fsSL https://get.docker.com | sh
+    sudo usermod -aG docker $USER  # Allow non-root usage
+    sudo systemctl enable --now docker  # Start Docker and enable on boot
+fi
+
 
 # Cleaning previous agent
 rm -rf $CODE_PATH
@@ -25,7 +32,7 @@ docker rm libertai-agent
 # Deploying the new agent
 unzip $ZIP_PATH -d $CODE_PATH
 wget https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/main/deployment/$2.Dockerfile -O $DOCKERFILE_PATH -q --no-cache
-docker build $CODE_PATH \
+docker buildx build $CODE_PATH \
   -f $DOCKERFILE_PATH \
   -t libertai-agent \
   --build-arg PYTHON_VERSION=$1
@@ -33,5 +40,5 @@ docker run --name libertai-agent -p 8000:8000 -d libertai-agent $ENTRYPOINT
 
 # Cleanup
 rm -f $ZIP_PATH
-# rm -rf $CODE_PATH
+rm -rf $CODE_PATH
 rm -f $DOCKERFILE_PATH
