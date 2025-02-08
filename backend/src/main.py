@@ -12,7 +12,11 @@ from aleph_message.models import Chain, Payment, PaymentType, StoreMessage
 from aleph_message.models.execution.environment import HypervisorType
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from libertai_utils.chains.index import is_signature_valid
-from libertai_utils.interfaces.agent import UpdateAgentResponse
+from libertai_utils.interfaces.agent import (
+    AgentPythonPackageManager,
+    AgentUsageType,
+    UpdateAgentResponse,
+)
 from libertai_utils.interfaces.subscription import Subscription
 from libertai_utils.utils.crypto import decrypt, encrypt
 from starlette.middleware.cors import CORSMiddleware
@@ -20,8 +24,6 @@ from starlette.middleware.cors import CORSMiddleware
 from src.config import config
 from src.interfaces.agent import (
     Agent,
-    AgentPythonPackageManager,
-    AgentUsageType,
     DeleteAgentBody,
     GetAgentResponse,
     GetAgentSecretMessage,
