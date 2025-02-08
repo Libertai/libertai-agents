@@ -2,13 +2,13 @@
 
 [[package]]
 name = "aiohappyeyeballs"
-version = "2.4.4"
+version = "2.4.6"
 description = "Happy Eyeballs for asyncio"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 files = [
-    {file = "aiohappyeyeballs-2.4.4-py3-none-any.whl", hash = "sha256:a980909d50efcd44795c4afeca523296716d50cd756ddca6af8c65b996e27de8"},
-    {file = "aiohappyeyeballs-2.4.4.tar.gz", hash = "sha256:5fdd7d87889c63183afc18ce9271f9b0a7d32c2303e394468dd45d514a757745"},
+    {file = "aiohappyeyeballs-2.4.6-py3-none-any.whl", hash = "sha256:147ec992cf873d74f5062644332c539fcd42956dc69453fe5204195e560517e1"},
+    {file = "aiohappyeyeballs-2.4.6.tar.gz", hash = "sha256:9b05052f9042985d32ecbe4b59a77ae19c006a78f1344d7fdad69d28ded3d0b0"},
 ]
 
 [[package]]
@@ -1514,13 +1514,13 @@ typing-extensions = ">=4.5.0"
 
 [[package]]
 name = "libertai-utils"
-version = "0.0.10"
+version = "0.0.11"
 description = "LibertAI internal types and functions"
 optional = false
 python-versions = "<4.0,>=3.11"
 files = [
-    {file = "libertai_utils-0.0.10-py3-none-any.whl", hash = "sha256:37826d230fe59276fa56387253963018faf440be15d3ab83010b7e4e8b257188"},
-    {file = "libertai_utils-0.0.10.tar.gz", hash = "sha256:15b94acf8ad87f9dbe1b63a9cacf99e3db6e50d1d4e78d1107a59329b3cac3a3"},
+    {file = "libertai_utils-0.0.11-py3-none-any.whl", hash = "sha256:529229e9b40f4e2ddba00234ee3db6e6c908c94731bc7787f01d698cfe852cbc"},
+    {file = "libertai_utils-0.0.11.tar.gz", hash = "sha256:4af99d219b341088e614d093d9c462aef635dbd81e568b32599a3876598cdbf8"},
 ]
 
 [package.dependencies]
@@ -3203,4 +3203,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "c498f54fe5814a367c63ff2656390a723373857706b029cfd1e88856d0f24868"
+content-hash = "4e8b5cdc082b21d1f2006f67370a9a886bf94faa25b52d2e7f6ef863ada84b0b"

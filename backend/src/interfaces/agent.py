@@ -1,5 +1,3 @@
-from enum import Enum
-
 from libertai_utils.interfaces.agent import BaseDeleteAgentBody
 from libertai_utils.interfaces.subscription import SubscriptionAccount
 from pydantic import BaseModel, validator
@@ -48,15 +46,3 @@ class GetAgentResponse(PublicAgentData):
 
 class GetAgentSecretResponse(BaseModel):
     secret: str
-
-
-# TODO: move the agent types in utils package once stable
-class AgentPythonPackageManager(str, Enum):
-    poetry = "poetry"
-    requirements = "requirements"
-    pyproject = "pyproject"
-
-
-class AgentUsageType(str, Enum):
-    fastapi = "fastapi"
-    python = "python"
