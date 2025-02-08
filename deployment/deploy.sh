@@ -24,7 +24,7 @@ docker rm libertai-agent
 
 # Deploying the new agent
 unzip $ZIP_PATH -d $CODE_PATH
-wget https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/instances/deployment/$2.Dockerfile -O $DOCKERFILE_PATH -q --no-cache
+wget https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/main/deployment/$2.Dockerfile -O $DOCKERFILE_PATH -q --no-cache
 docker build $CODE_PATH \
   -f $DOCKERFILE_PATH \
   -t libertai-agent \

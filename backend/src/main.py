@@ -187,7 +187,7 @@ async def update(
     agent_id: str,
     secret: str = Form(),
     deploy_script_url: str = Form(
-        default="https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/instances/deployment/deploy.sh"
+        default="https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/main/deployment/deploy.sh"
     ),
     python_version: str = Form(),
     usage_type: AgentUsageType = Form(),
