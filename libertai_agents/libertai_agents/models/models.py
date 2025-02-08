@@ -22,12 +22,12 @@ MODEL_IDS: list[ModelId] = list(typing.get_args(ModelId))
 MODELS_CONFIG: dict[ModelId, FullModelConfiguration] = {
     "NousResearch/Hermes-3-Llama-3.1-8B": FullModelConfiguration(
         vm_url="https://curated.aleph.cloud/vm/84df52ac4466d121ef3bb409bb14f315de7be4ce600e8948d71df6485aa5bcc3/completion",
-        context_length=4096,
+        context_length=16384,
         constructor=HermesModel,
     ),
     "mistralai/Mistral-Nemo-Instruct-2407": FullModelConfiguration(
         vm_url="https://curated.aleph.cloud/vm/2c4ad0bf343fb12924936cbc801732d95ce90f84cd895aa8bee82c0a062815c2/completion",
-        context_length=4096,
+        context_length=8192,
         constructor=MistralModel,
     ),
 }
