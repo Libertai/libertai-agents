@@ -6,7 +6,6 @@ from fastapi import FastAPI
 from libertai_agents.agents import ChatAgent
 from libertai_agents.interfaces.messages import (
     Message,
-    MessageRoleEnum,
     ToolCallMessage,
     ToolResponseMessage,
 )
@@ -64,12 +63,12 @@ async def test_call_chat_agent_basic():
     )
     messages = []
     async for message in agent.generate_answer(
-        [Message(role=MessageRoleEnum.user, content="Reply with 'OTHER'.")]
+        [Message(role="user", content="Reply with 'OTHER'.")]
     ):
         messages.append(message)
 
     assert len(messages) == 1
-    assert messages[0].role == MessageRoleEnum.assistant
+    assert messages[0].role == "assistant"
     assert answer in messages[0].content
 
 
@@ -79,13 +78,13 @@ async def test_call_chat_agent_prompt_at_generation():
     agent = ChatAgent(model=get_model(get_random_model_id()))
     messages = []
     async for message in agent.generate_answer(
-        [Message(role=MessageRoleEnum.user, content="Reply with 'OTHER'.")],
+        [Message(role="user", content="Reply with 'OTHER'.")],
         system_prompt=get_prompt_fixed_response(answer),
     ):
         messages.append(message)
 
     assert len(messages) == 1
-    assert messages[0].role == MessageRoleEnum.assistant
+    assert messages[0].role == "assistant"
     assert answer in messages[0].content
 
 
@@ -98,7 +97,7 @@ async def test_call_chat_agent_use_tool(fake_get_temperature_tool):
     async for message in agent.generate_answer(
         [
             Message(
-                role=MessageRoleEnum.user,
+                role="user",
                 content="What's the weather in Paris, France in celsius?",
             )
         ],
@@ -109,7 +108,7 @@ async def test_call_chat_agent_use_tool(fake_get_temperature_tool):
     assert len(messages) == 3
     [tool_call, tool_response, final_response] = messages
 
-    assert tool_call.role == MessageRoleEnum.assistant
+    assert tool_call.role == "assistant"
     assert tool_call.content is None
     assert isinstance(tool_call, ToolCallMessage)
     assert (
@@ -121,7 +120,7 @@ async def test_call_chat_agent_use_tool(fake_get_temperature_tool):
         "unit": "celsius",
     }
 
-    assert tool_response.role == MessageRoleEnum.tool
+    assert tool_response.role == "tool"
     assert tool_response.content == str(
         fake_get_temperature_tool(location="Paris, France", unit="celsius")
     )
@@ -131,5 +130,5 @@ async def test_call_chat_agent_use_tool(fake_get_temperature_tool):
         == fake_get_temperature_tool.__name__
     )
 
-    assert final_response.role == MessageRoleEnum.assistant
+    assert final_response.role == "assistant"
     assert len(final_response.content) > 0

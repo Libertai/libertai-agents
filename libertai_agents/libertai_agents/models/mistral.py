@@ -12,7 +12,6 @@ class MistralModel(Model):
             model_id=model_id,
             vm_url=vm_url,
             context_length=context_length,
-            include_system_message=False,
         )
 
     @staticmethod
