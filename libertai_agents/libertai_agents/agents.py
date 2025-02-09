@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import json
+import time
 from http import HTTPStatus
 from typing import Any, AsyncIterable, Awaitable
 
@@ -195,13 +196,24 @@ class ChatAgent:
         """
         params = LlamaCppParams(prompt=prompt, **self.llamacpp_params.model_dump())
 
-        async with session.post(
-            self.model.vm_url, json=params.model_dump()
-        ) as response:
-            # TODO: handle errors and retries
-            if response.status == HTTPStatus.OK:
-                response_data = await response.json()
-                return response_data["content"]
+        wait_between_retries = 0.1
+        max_retries = 150
+        # Looping until we get a satisfying response
+        for _ in range(max_retries):
+            async with session.post(
+                self.model.vm_url, json=params.model_dump()
+            ) as response:
+                if response.status == HTTPStatus.OK:
+                    response_data = await response.json()
+                    return response_data["content"]
+                elif response.status == HTTPStatus.SERVICE_UNAVAILABLE:
+                    # Can happen sometimes, let's just wait a bit and retry
+                    time.sleep(wait_between_retries)
+                    continue
+            # Other unexpected error
+            return None
+
+        # Max number of retries exceeded
         return None
 
     def __execute_tool_calls(
