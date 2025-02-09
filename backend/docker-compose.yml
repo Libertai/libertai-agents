@@ -9,7 +9,8 @@ services:
   agents-api:
     build:
       dockerfile: ./Dockerfile
-    container_name: libertai-agents
+    image: libertai-agents-backend
+    container_name: libertai-agents-backend
     restart: unless-stopped
     networks:
       my_ipv6_network:
