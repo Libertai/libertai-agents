@@ -12,12 +12,16 @@ from libertai_agents.interfaces.messages import (
 from libertai_agents.interfaces.tools import Tool
 from libertai_agents.models import get_model
 from libertai_agents.models.models import ModelConfiguration
-from tests.utils.models import get_prompt_fixed_response, get_random_model_id
+from tests.utils.models import (
+    get_hf_token,
+    get_prompt_fixed_response,
+    get_random_model_id,
+)
 
 
 def test_create_chat_agent_minimal():
     model_id = get_random_model_id()
-    agent = ChatAgent(model=get_model(model_id))
+    agent = ChatAgent(model=get_model(model_id, hf_token=get_hf_token()))
 
     assert len(agent.tools) == 0
     assert agent.model.model_id == model_id
@@ -30,6 +34,7 @@ def test_create_chat_agent_with_config(fake_get_temperature_tool):
     agent = ChatAgent(
         model=get_model(
             get_random_model_id(),
+            hf_token=get_hf_token(),
             custom_configuration=ModelConfiguration(
                 vm_url="https://example.org", context_length=context_length
             ),
@@ -46,7 +51,7 @@ def test_create_chat_agent_with_config(fake_get_temperature_tool):
 def test_create_chat_agent_double_tool(fake_get_temperature_tool):
     with pytest.raises(ValueError):
         _agent = ChatAgent(
-            model=get_model(get_random_model_id()),
+            model=get_model(get_random_model_id(), get_hf_token()),
             tools=[
                 Tool.from_function(fake_get_temperature_tool),
                 Tool.from_function(fake_get_temperature_tool),
@@ -58,13 +63,11 @@ async def test_call_chat_agent_basic():
     answer = "TODO"
 
     agent = ChatAgent(
-        model=get_model(get_random_model_id()),
+        model=get_model(get_random_model_id(), get_hf_token()),
         system_prompt=get_prompt_fixed_response(answer),
     )
     messages = []
-    async for message in agent.generate_answer(
-        [Message(role="user", content="Reply with 'OTHER'.")]
-    ):
+    async for message in agent.generate_answer([Message(role="user", content="Hey")]):
         messages.append(message)
 
     assert len(messages) == 1
@@ -74,11 +77,15 @@ async def test_call_chat_agent_basic():
 
 async def test_call_chat_agent_prompt_at_generation():
     answer = "TODO"
+    other_answer = "OTHER"
 
-    agent = ChatAgent(model=get_model(get_random_model_id()))
+    agent = ChatAgent(
+        model=get_model(get_random_model_id(), get_hf_token()),
+        system_prompt=get_prompt_fixed_response(other_answer),
+    )
     messages = []
     async for message in agent.generate_answer(
-        [Message(role="user", content="Reply with 'OTHER'.")],
+        [Message(role="user", content="Hey")],
         system_prompt=get_prompt_fixed_response(answer),
     ):
         messages.append(message)
@@ -90,7 +97,7 @@ async def test_call_chat_agent_prompt_at_generation():
 
 async def test_call_chat_agent_use_tool(fake_get_temperature_tool):
     agent = ChatAgent(
-        model=get_model(get_random_model_id()),
+        model=get_model(get_random_model_id(), get_hf_token()),
         tools=[Tool.from_function(fake_get_temperature_tool)],
     )
     messages = []
