@@ -4,6 +4,7 @@ ZIP_PATH="/tmp/libertai-agent.zip"
 CODE_PATH="/root/libertai-agent"
 DOCKERFILE_PATH="/tmp/libertai-agent.Dockerfile"
 CONTAINER_NAME="libertai-agent"
+IMAGE_NAME="libertai-agent"
 
 case "$3" in
     fastapi)
@@ -26,18 +27,18 @@ if ! command -v docker &> /dev/null; then
 fi
 
 
-# Cleaning previous agent
+# Starting to clean previous agent and preparing new one
 rm -rf $CODE_PATH
-docker inspect libertai-agent 2>/dev/null && docker stop libertai-agent && docker rm libertai-agent
-
-# Deploying the new agent
 unzip $ZIP_PATH -d $CODE_PATH
 wget https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/main/deployment/$2.Dockerfile -O $DOCKERFILE_PATH -q --no-cache
 docker buildx build -q $CODE_PATH \
   -f $DOCKERFILE_PATH \
-  -t libertai-agent \
+  -t $IMAGE_NAME \
   --build-arg PYTHON_VERSION=$1
-docker run --name $CONTAINER_NAME -p 8000:8000 -d libertai-agent $ENTRYPOINT
+
+# Replacing old agent with new one
+docker inspect $CONTAINER_NAME 2>/dev/null && docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME
+docker run --name $CONTAINER_NAME -p 8000:8000 -d $IMAGE_NAME $ENTRYPOINT
 
 # Cleanup
 rm -f $ZIP_PATH
