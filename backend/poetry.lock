@@ -159,13 +159,13 @@ typing_extensions = ">=4.5.0"
 
 [[package]]
 name = "aleph-sdk-python"
-version = "1.3.0"
+version = "1.3.1"
 description = "Lightweight Python Client library for the Aleph.im network"
 optional = false
 python-versions = "*"
 files = [
-    {file = "aleph_sdk_python-1.3.0-py2.py3-none-any.whl", hash = "sha256:ea175b02995bb399cb4fb873227696508e33ac6f5c0dbdcd2c81874e098a71e9"},
-    {file = "aleph_sdk_python-1.3.0.tar.gz", hash = "sha256:ffecc74e16ce70285ede4756b62fcb7efd24de1e0e7f0fb99e80642de4c8ada5"},
+    {file = "aleph_sdk_python-1.3.1-py2.py3-none-any.whl", hash = "sha256:c4de3eb6b3e70ce164a057de08ae218d6361cfd145ad08dc4a2379b547e8869c"},
+    {file = "aleph_sdk_python-1.3.1.tar.gz", hash = "sha256:ee7c667f5cf8ece0d4a1878fe066253152094c51dade231ce890ef6d0cac2b76"},
 ]
 
 [package.dependencies]
@@ -184,7 +184,7 @@ typing-extensions = "*"
 web3 = "6.3"
 
 [package.extras]
-all = ["aiodns", "aiomqtt (<=0.1.3)", "aleph-nuls2", "aleph-pytezos (==0.1.1)", "base58", "certifi", "click", "cosmospy", "eciespy", "eciespy (>=0.3.13)", "ledgereth (==0.10)", "py-sr25519-bindings", "pynacl", "sphinxcontrib-plantuml", "substrate-interface"]
+all = ["aiodns", "aiomqtt (<=0.1.3)", "aleph-nuls2", "aleph-pytezos (==3.13.4)", "base58", "certifi", "click", "cosmospy", "eciespy", "eciespy (>=0.3.13)", "ledgereth (==0.10)", "py-sr25519-bindings", "pynacl", "sphinxcontrib-plantuml", "substrate-interface"]
 cosmos = ["cosmospy"]
 dns = ["aiodns"]
 docs = ["sphinxcontrib-plantuml"]
@@ -194,7 +194,7 @@ mqtt = ["aiomqtt (<=0.1.3)", "certifi", "click"]
 nuls2 = ["aleph-nuls2"]
 solana = ["base58", "pynacl"]
 substrate = ["py-sr25519-bindings", "substrate-interface"]
-tezos = ["aleph-pytezos (==0.1.1)", "pynacl"]
+tezos = ["aleph-pytezos (==3.13.4)", "pynacl"]
 
 [[package]]
 name = "aleph-superfluid"
@@ -1046,13 +1046,13 @@ test = ["pytest (>=7.0.0)", "pytest-xdist (>=2.4.0)"]
 
 [[package]]
 name = "eth-keyfile"
-version = "0.9.0"
+version = "0.9.1"
 description = "eth-keyfile: A library for handling the encrypted keyfiles used to store ethereum private keys"
 optional = false
 python-versions = "<4,>=3.8"
 files = [
-    {file = "eth_keyfile-0.9.0-py3-none-any.whl", hash = "sha256:45d3513b6433ad885370225ba0429ed26493ba23589c5b1ca5da024765020fef"},
-    {file = "eth_keyfile-0.9.0.tar.gz", hash = "sha256:8621c35e83cbc05909d2f23dbb8a87633918733caea553ae0e298f6a06291526"},
+    {file = "eth_keyfile-0.9.1-py3-none-any.whl", hash = "sha256:9789c3b4fa0bb6e2616cdc2bdd71b8755b42947d78ef1e900a0149480fabb5c2"},
+    {file = "eth_keyfile-0.9.1.tar.gz", hash = "sha256:c7a8bc6af4527d1ab2eb1d1b949d59925252e17663eaf90087da121327b51df6"},
 ]
 
 [package.dependencies]
@@ -1516,13 +1516,13 @@ typing-extensions = ">=4.5.0"
 
 [[package]]
 name = "libertai-utils"
-version = "0.0.11"
+version = "0.0.12"
 description = "LibertAI internal types and functions"
 optional = false
 python-versions = "<4.0,>=3.11"
 files = [
-    {file = "libertai_utils-0.0.11-py3-none-any.whl", hash = "sha256:529229e9b40f4e2ddba00234ee3db6e6c908c94731bc7787f01d698cfe852cbc"},
-    {file = "libertai_utils-0.0.11.tar.gz", hash = "sha256:4af99d219b341088e614d093d9c462aef635dbd81e568b32599a3876598cdbf8"},
+    {file = "libertai_utils-0.0.12-py3-none-any.whl", hash = "sha256:de0bc01cb787bc05098ca697d8d5e32d324985250d1c8c4a5c37367bccd0018c"},
+    {file = "libertai_utils-0.0.12.tar.gz", hash = "sha256:4d6b821ef37198e4997d688aff362f9ee3c852b8b0265cfbea4c755d7af611c7"},
 ]
 
 [package.dependencies]
@@ -3205,4 +3205,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "4e8b5cdc082b21d1f2006f67370a9a886bf94faa25b52d2e7f6ef863ada84b0b"
+content-hash = "6a3b9f01ca3bde4536dac9247eec67d3611f9fda750197bb8c15be947e9569d9"
