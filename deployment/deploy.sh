@@ -37,7 +37,7 @@ docker buildx build -q $CODE_PATH \
   --build-arg PYTHON_VERSION=$1
 
 # Replacing old agent with new one
-docker inspect $CONTAINER_NAME 2>/dev/null && docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME
+docker inspect $CONTAINER_NAME > /dev/null 2>&1 && docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME
 docker run --name $CONTAINER_NAME -p 8000:8000 -d $IMAGE_NAME $ENTRYPOINT
 
 # Cleanup

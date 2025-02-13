@@ -278,7 +278,7 @@ async def update(
 async def add_ssh_key(
     agent_id: str, body: AddSSHKeyAgentBody
 ) -> AddSSHKeyAgentResponse:
-    add_ssh_key_script_url = "https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/allow-ssh-access/deployment/add_ssh_key.sh"
+    add_ssh_key_script_url = "https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/main/deployment/add_ssh_key.sh"
     agents = await fetch_agents([agent_id])
 
     if len(agents) != 1:
