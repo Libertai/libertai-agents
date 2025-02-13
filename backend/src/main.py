@@ -23,6 +23,8 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src.config import config
 from src.interfaces.agent import (
+    AddSSHKeyAgentResponse,
+    AddSSHKeyBody,
     Agent,
     DeleteAgentBody,
     GetAgentResponse,
@@ -240,9 +242,11 @@ async def update(
     sftp.putfo(io.BytesIO(content), remote_path)
     sftp.close()
 
+    script_path = "/tmp/deploy-agent.sh"
+
     # Execute the command
     _stdin, _stdout, stderr = ssh_client.exec_command(
-        f"wget {deploy_script_url} -O /tmp/deploy-agent.sh -q --no-cache && chmod +x /tmp/deploy-agent.sh && /tmp/deploy-agent.sh {python_version} {package_manager.value} {usage_type.value}"
+        f"wget {deploy_script_url} -O {script_path} -q --no-cache && chmod +x {script_path} && {script_path} {python_version} {package_manager.value} {usage_type.value}"
     )
     # Waiting for the command to complete to get error logs
     stderr.channel.recv_exit_status()
@@ -268,6 +272,62 @@ async def update(
         )
 
     return UpdateAgentResponse(instance_ip=hostname, error_log=stderr.read())
+
+
+@app.post("/agent/{agent_id}/ssh-key", description="Add an SSH to a deployed agent")
+async def add_ssh_key(agent_id: str, body: AddSSHKeyBody) -> AddSSHKeyAgentResponse:
+    add_ssh_key_script_url = "https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/allow-ssh-access/deployment/add_ssh_key.sh"
+    agents = await fetch_agents([agent_id])
+
+    if len(agents) != 1:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=f"Agent with ID {agent_id} not found.",
+        )
+    agent = agents[0]
+
+    # Validating the secret
+    decrypted_secret = decrypt(agent.encrypted_secret, config.ALEPH_SENDER_SK)
+    if body.secret != decrypted_secret:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail="The secret provided doesn't match the one of this agent.",
+        )
+
+    ssh_private_key = decrypt(agent.encrypted_ssh_key, config.ALEPH_SENDER_SK)
+
+    try:
+        hostname = await fetch_instance_ip(agent.instance_hash)
+    except ValueError:
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            detail="Instance IPv6 address not found, it probably isn't allocated yet. Please try again in a few minutes.",
+        )
+
+    # Create a Paramiko SSH client
+    ssh_client = paramiko.SSHClient()
+    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    # Load private key from string
+    rsa_key = paramiko.RSAKey(file_obj=io.StringIO(ssh_private_key))
+
+    # Connect to the server
+    ssh_client.connect(hostname=hostname, username="root", pkey=rsa_key)
+
+    script_path = "/tmp/add_ssh_key.sh"
+
+    # Execute the command
+    _stdin, _stdout, stderr = ssh_client.exec_command(
+        f"wget {add_ssh_key_script_url} -O {script_path} -q --no-cache && chmod +x {script_path} && {script_path} {body.ssh_key}"
+    )
+
+    # Waiting for the command to complete to get error logs
+    stderr.channel.recv_exit_status()
+
+    # Close the connection
+    ssh_client.close()
+
+    return AddSSHKeyAgentResponse(error_log=str(stderr.read()))
 
 
 # TODO: add a redeploy route to forget the previous instance and setup again the agent's instance (in case instance allocation is failed)

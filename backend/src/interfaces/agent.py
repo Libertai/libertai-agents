@@ -46,3 +46,12 @@ class GetAgentResponse(PublicAgentData):
 
 class GetAgentSecretResponse(BaseModel):
     secret: str
+
+
+class AddSSHKeyBody(BaseModel):
+    secret: str
+    ssh_key: str
+
+
+class AddSSHKeyAgentResponse(BaseModel):
+    error_log: str
