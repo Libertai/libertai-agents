@@ -13,6 +13,8 @@ from aleph_message.models.execution.environment import HypervisorType
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from libertai_utils.chains.index import is_signature_valid
 from libertai_utils.interfaces.agent import (
+    AddSSHKeyAgentBody,
+    AddSSHKeyAgentResponse,
     AgentPythonPackageManager,
     AgentUsageType,
     UpdateAgentResponse,
@@ -23,8 +25,6 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src.config import config
 from src.interfaces.agent import (
-    AddSSHKeyAgentResponse,
-    AddSSHKeyBody,
     Agent,
     DeleteAgentBody,
     GetAgentResponse,
@@ -275,7 +275,9 @@ async def update(
 
 
 @app.post("/agent/{agent_id}/ssh-key", description="Add an SSH to a deployed agent")
-async def add_ssh_key(agent_id: str, body: AddSSHKeyBody) -> AddSSHKeyAgentResponse:
+async def add_ssh_key(
+    agent_id: str, body: AddSSHKeyAgentBody
+) -> AddSSHKeyAgentResponse:
     add_ssh_key_script_url = "https://raw.githubusercontent.com/Libertai/libertai-agents/refs/heads/reza/allow-ssh-access/deployment/add_ssh_key.sh"
     agents = await fetch_agents([agent_id])
 
@@ -314,11 +316,11 @@ async def add_ssh_key(agent_id: str, body: AddSSHKeyBody) -> AddSSHKeyAgentRespo
     # Connect to the server
     ssh_client.connect(hostname=hostname, username="root", pkey=rsa_key)
 
-    script_path = "/tmp/add_ssh_key.sh"
+    script_path = "/tmp/add-ssh-key.sh"
 
     # Execute the command
     _stdin, _stdout, stderr = ssh_client.exec_command(
-        f"wget {add_ssh_key_script_url} -O {script_path} -q --no-cache && chmod +x {script_path} && {script_path} {body.ssh_key}"
+        f"wget {add_ssh_key_script_url} -O {script_path} -q --no-cache && chmod +x {script_path} && {script_path} '{body.ssh_key}'"
     )
 
     # Waiting for the command to complete to get error logs
@@ -327,7 +329,7 @@ async def add_ssh_key(agent_id: str, body: AddSSHKeyBody) -> AddSSHKeyAgentRespo
     # Close the connection
     ssh_client.close()
 
-    return AddSSHKeyAgentResponse(error_log=str(stderr.read()))
+    return AddSSHKeyAgentResponse(error_log=stderr.read())
 
 
 # TODO: add a redeploy route to forget the previous instance and setup again the agent's instance (in case instance allocation is failed)
