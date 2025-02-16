@@ -25,6 +25,11 @@ MODELS_CONFIG: dict[ModelId, FullModelConfiguration] = {
         context_length=16384,
         constructor=HermesModel,
     ),
+    "deepseek-ai/DeepSeek-V3": FullModelConfiguration(
+        vm_url="https://curated.aleph.cloud/vm/9aa80dc7f00c515a5f56b70e65fdab4c367e35f341c3b4220419adb6ca86a33f/completion",
+        context_length=16384,
+        constructor=HermesModel,
+    ),
     "mistralai/Mistral-Nemo-Instruct-2407": FullModelConfiguration(
         vm_url="https://curated.aleph.cloud/vm/2c4ad0bf343fb12924936cbc801732d95ce90f84cd895aa8bee82c0a062815c2/completion",
         context_length=8192,
