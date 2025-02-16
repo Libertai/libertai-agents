@@ -62,7 +62,7 @@ class ChatAgent:
         self.system_prompt = system_prompt
         self.tools = tools
         self.llamacpp_params = llamacpp_params
-        self.call_session = None
+        self.call_session: ClientSession | None = None
 
         if expose_api:
             # Define API routes
@@ -121,10 +121,10 @@ class ChatAgent:
                 # TODO: handle error correctly
                 raise ValueError("Model didn't respond")
 
-                tool_calls = self.model.extract_tool_calls_from_response(response)
-                if len(tool_calls) == 0:
-                    yield Message(role="assistant", content=response)
-                    return
+            tool_calls = self.model.extract_tool_calls_from_response(response)
+            if len(tool_calls) == 0:
+                yield Message(role="assistant", content=response)
+                return
 
             # Executing the detected tool calls
             tool_calls_message = self.__create_tool_calls_message(tool_calls)
