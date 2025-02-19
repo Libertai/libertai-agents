@@ -12,7 +12,6 @@ from libertai_agents.interfaces.tools import Tool
 ModelId = Literal[
     "NousResearch/Hermes-3-Llama-3.1-8B",
     "mistralai/Mistral-Nemo-Instruct-2407",
-    "deepseek-ai/DeepSeek-V3",
 ]
 
 
