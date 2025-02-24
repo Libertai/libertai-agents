@@ -153,24 +153,22 @@ class ChatAgent:
             if not only_final_answer:
                 yield tool_calls_message
 
-                executed_calls = self.__execute_tool_calls(
-                    tool_calls_message.tool_calls
+            executed_calls = self.__execute_tool_calls(tool_calls_message.tool_calls)
+            results = await asyncio.gather(*executed_calls)
+            tool_results_messages: list[Message] = [
+                ToolResponseMessage(
+                    role="tool",
+                    name=call.function.name,
+                    tool_call_id=call.id,
+                    content=str(results[i]),
                 )
-                results = await asyncio.gather(*executed_calls)
-                tool_results_messages: list[Message] = [
-                    ToolResponseMessage(
-                        role="tool",
-                        name=call.function.name,
-                        tool_call_id=call.id,
-                        content=str(results[i]),
-                    )
-                    for i, call in enumerate(tool_calls_message.tool_calls)
-                ]
-                if not only_final_answer:
-                    for tool_result_message in tool_results_messages:
-                        yield tool_result_message
-                # Doing the next iteration of the loop with the results to make other tool calls or to answer
-                messages = messages + tool_results_messages
+                for i, call in enumerate(tool_calls_message.tool_calls)
+            ]
+            if not only_final_answer:
+                for tool_result_message in tool_results_messages:
+                    yield tool_result_message
+            # Doing the next iteration of the loop with the results to make other tool calls or to answer
+            messages = messages + tool_results_messages
 
     async def __api_generate_answer(
         self,
