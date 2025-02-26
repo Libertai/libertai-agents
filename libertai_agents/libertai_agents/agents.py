@@ -255,7 +255,9 @@ class ChatAgent:
             function_name = call.function.name
             tool = find(lambda x: x.name == function_name, self.tools)
             if tool is None:
-                # TODO: handle error
+                future = asyncio.Future()
+                future.set_result(None)
+                executed_calls.append(future)
                 continue
 
             function_to_call = tool.function
