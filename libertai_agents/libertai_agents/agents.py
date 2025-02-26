@@ -3,6 +3,7 @@ import inspect
 import json
 import time
 import weakref
+from asyncio import Future
 from http import HTTPStatus
 from typing import Any, AsyncIterable, Awaitable
 
@@ -255,7 +256,7 @@ class ChatAgent:
             function_name = call.function.name
             tool = find(lambda x: x.name == function_name, self.tools)
             if tool is None:
-                future = asyncio.Future()
+                future: Future = asyncio.Future()
                 future.set_result(None)
                 executed_calls.append(future)
                 continue
