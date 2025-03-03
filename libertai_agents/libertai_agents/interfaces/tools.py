@@ -48,9 +48,13 @@ class Tool(BaseModel):
             # Particular case
             structured_langchain_tool: StructuredTool = langchain_tool
             function_parameters = (
-                structured_langchain_tool.args_schema.model_json_schema(
-                    schema_generator=GenerateToolPropertiesJsonSchema
+                (
+                    structured_langchain_tool.args_schema.model_json_schema(
+                        schema_generator=GenerateToolPropertiesJsonSchema
+                    )
                 )
+                if structured_langchain_tool.args_schema is not None
+                else {}
             )
 
             if structured_langchain_tool.func is None:
