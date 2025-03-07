@@ -4,6 +4,8 @@ FROM python:${PYTHON_VERSION}-slim
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install build-essential -y && && apt-get clean
+
 COPY pyproject.toml poetry.lock ./
 
 RUN pip install --no-cache-dir poetry && \
