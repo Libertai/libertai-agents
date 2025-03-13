@@ -3,7 +3,7 @@ from goat_adapters.langchain import get_on_chain_tools
 from goat_wallets.evm import send_eth
 from goat_wallets.web3 import Web3EVMWalletClient
 from web3 import Web3
-from web3.middleware import construct_sign_and_send_raw_middleware
+from web3.middleware import SignAndSendRawMiddlewareBuilder
 
 from libertai_agents.interfaces.tools import Tool
 
@@ -14,7 +14,7 @@ def test_goat_send_eth_tool() -> None:
     account: LocalAccount = w3.eth.account.create()
     w3.eth.default_account = account.address  # Set the default account
     w3.middleware_onion.add(
-        construct_sign_and_send_raw_middleware(account)
+        SignAndSendRawMiddlewareBuilder.build(account)
     )  # Add middleware
 
     goat_langchain_tools = get_on_chain_tools(

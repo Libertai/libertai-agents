@@ -30,7 +30,7 @@ from libertai_agents.utils import find
 MAX_TOOL_CALLS_DEPTH = 3
 
 
-class ChatAgent:
+class Agent:
     model: Model
     system_prompt: str | None
     tools: list[Tool]
@@ -82,7 +82,7 @@ class ChatAgent:
             )
             router.add_api_route("/model", self.get_model_information, methods=["GET"])
 
-            self.app = FastAPI(title="LibertAI ChatAgent")
+            self.app = FastAPI(title="LibertAI Agent")
             self.app.include_router(router)
 
     @property
