@@ -3,7 +3,7 @@ import typing
 import pytest
 from fastapi import FastAPI
 
-from libertai_agents.agents import ChatAgent
+from libertai_agents.agents.agent import Agent
 from libertai_agents.interfaces.messages import (
     Message,
     ToolCallMessage,
@@ -21,7 +21,7 @@ from tests.utils.models import (
 
 def test_create_chat_agent_minimal():
     model_id = get_random_model_id()
-    agent = ChatAgent(model=get_model(model_id, hf_token=get_hf_token()))
+    agent = Agent(model=get_model(model_id, hf_token=get_hf_token()))
 
     assert len(agent.tools) == 0
     assert agent.model.model_id == model_id
@@ -31,7 +31,7 @@ def test_create_chat_agent_minimal():
 def test_create_chat_agent_with_config(fake_get_temperature_tool):
     context_length = 42
 
-    agent = ChatAgent(
+    agent = Agent(
         model=get_model(
             get_random_model_id(),
             hf_token=get_hf_token(),
@@ -50,7 +50,7 @@ def test_create_chat_agent_with_config(fake_get_temperature_tool):
 
 def test_create_chat_agent_double_tool(fake_get_temperature_tool):
     with pytest.raises(ValueError):
-        _agent = ChatAgent(
+        _agent = Agent(
             model=get_model(get_random_model_id(), get_hf_token()),
             tools=[
                 Tool.from_function(fake_get_temperature_tool),
@@ -62,7 +62,7 @@ def test_create_chat_agent_double_tool(fake_get_temperature_tool):
 async def test_call_chat_agent_basic():
     answer = "TODO"
 
-    agent = ChatAgent(
+    agent = Agent(
         model=get_model(get_random_model_id(), get_hf_token()),
         system_prompt=get_prompt_fixed_response(answer),
     )
@@ -79,7 +79,7 @@ async def test_call_chat_agent_prompt_at_generation():
     answer = "TODO"
     other_answer = "OTHER"
 
-    agent = ChatAgent(
+    agent = Agent(
         model=get_model(get_random_model_id(), get_hf_token()),
         system_prompt=get_prompt_fixed_response(other_answer),
     )
@@ -96,7 +96,7 @@ async def test_call_chat_agent_prompt_at_generation():
 
 
 async def test_call_chat_agent_use_tool(fake_get_temperature_tool):
-    agent = ChatAgent(
+    agent = Agent(
         model=get_model(get_random_model_id(), get_hf_token()),
         tools=[Tool.from_function(fake_get_temperature_tool)],
     )
