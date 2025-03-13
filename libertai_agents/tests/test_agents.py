@@ -3,7 +3,7 @@ import typing
 import pytest
 from fastapi import FastAPI
 
-from libertai_agents.agents.agent import Agent
+from libertai_agents.agents import Agent
 from libertai_agents.interfaces.messages import (
     Message,
     ToolCallMessage,
