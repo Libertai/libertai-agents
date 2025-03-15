@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 import logging
-import os
+from contextlib import asynccontextmanager
 from logging import Logger
 
 from coinbase_agentkit import (
@@ -16,6 +16,7 @@ from coinbase_agentkit import (
 from coinbase_agentkit_langchain import get_langchain_tools
 from dotenv import load_dotenv
 from eth_account import Account
+from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from typing_extensions import Unpack
 
@@ -27,31 +28,23 @@ from libertai_agents.interfaces.messages import (
 )
 from libertai_agents.interfaces.tools import Tool
 
-from .interfaces import AgentArgs, AutonomousAgentConfig
+from .interfaces import AgentArgs, SelfFundedAgentConfig
 from .provider import aleph_action_provider
 
 
 class SelfFundedAgent:
     agent: Agent
-    autonomous_config: AutonomousAgentConfig
+    autonomous_config: SelfFundedAgentConfig
     __logger: Logger
     __logs_storage: dict[str, str]
 
     def __init__(
-        self, autonomous_config: AutonomousAgentConfig, **kwargs: Unpack[AgentArgs]
+        self, autonomous_config: SelfFundedAgentConfig, **kwargs: Unpack[AgentArgs]
     ):
         load_dotenv()
 
-        private_key = os.getenv("AGENT_WALLET_PRIVATE_KEY", None)
-        if private_key is None:
-            raise ValueError(
-                "You must set the AGENT_WALLET_PRIVATE_KEY environment variable"
-            )
-        if not private_key.startswith("0x"):
-            raise ValueError("Private key must start with 0x hex prefix")
-
         # Create Ethereum account from private key
-        account = Account.from_key(private_key)
+        account = Account.from_key(autonomous_config.private_key)
 
         # Initialize Ethereum Account Wallet Provider
         wallet_provider = EthAccountWalletProvider(
@@ -80,7 +73,7 @@ class SelfFundedAgent:
 
         agentkit_tools = get_langchain_tools(agentkit)
 
-        if kwargs["tools"] is None:
+        if kwargs.get("tools", None) is None:
             kwargs["tools"] = []
         kwargs["tools"].extend([Tool.from_langchain(t) for t in agentkit_tools])  # type: ignore
 
@@ -97,7 +90,13 @@ class SelfFundedAgent:
             )
             self.__logger.addHandler(handler)
 
-        self.agent = Agent(**kwargs)  # type: ignore
+        @asynccontextmanager
+        async def lifespan(_app: FastAPI):
+            task = asyncio.create_task(self._scheduler())
+            yield
+            task.cancel()
+
+        self.agent = Agent(**kwargs, fastapi_params={"lifespan": lifespan})
 
         if self.agent.app is None:
             raise ValueError("Agent must expose a FastAPI app")
@@ -113,15 +112,11 @@ class SelfFundedAgent:
         self.autonomous_config = autonomous_config
         self.__logs_storage = {}
 
-        @self.agent.app.on_event("startup")
-        async def startup_event():
-            asyncio.create_task(self.__scheduler())
-
         @self.agent.app.get("/survival-logs")
         async def get_survival_logs():
             return self.__logs_storage
 
-    async def __scheduler(self):
+    async def _scheduler(self):
         unit = self.autonomous_config.compute_think_unit
         unit_multiplier = 1
         if unit == "minutes":
