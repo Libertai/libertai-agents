@@ -51,7 +51,7 @@ lint.select = ["C", "E", "F", "I", "W"]
 lint.ignore = ["E501"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=libertai_agents"
+addopts = "--cov=libertai_agents --cov-report=term --cov-report=html"
 testpaths = ["tests"]
 asyncio_mode = 'auto'
 

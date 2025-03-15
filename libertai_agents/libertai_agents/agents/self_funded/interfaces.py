@@ -12,11 +12,12 @@ class AgentArgs(TypedDict, total=False):
     model: Model
     system_prompt: str | None
     tools: list[Tool] | None
-    llamacpp_params: CustomizableLlamaCppParams | None
+    llamacpp_params: CustomizableLlamaCppParams
     expose_api: bool
 
 
-class AutonomousAgentConfig(BaseModel):
+class SelfFundedAgentConfig(BaseModel):
+    private_key: str
     agentkit_additional_action_providers: list[ActionProvider] = []
     compute_think_interval: int = 1
     compute_think_unit: Literal["seconds", "minutes", "hours"] = "hours"
