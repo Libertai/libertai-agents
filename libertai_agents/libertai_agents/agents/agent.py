@@ -5,11 +5,12 @@ import time
 import weakref
 from asyncio import Future
 from http import HTTPStatus
-from typing import Any, AsyncIterable, Awaitable
+from typing import Any, AsyncIterable, Awaitable, TypedDict
 
 from aiohttp import ClientSession
 from fastapi import APIRouter, FastAPI
 from starlette.responses import StreamingResponse
+from starlette.types import Lifespan
 
 from libertai_agents.interfaces.llamacpp import (
     CustomizableLlamaCppParams,
@@ -30,12 +31,16 @@ from libertai_agents.utils import find
 MAX_TOOL_CALLS_DEPTH = 3
 
 
-class ChatAgent:
+class AgentFastAPIParams(TypedDict, total=False):
+    lifespan: Lifespan | None
+
+
+class Agent:
     model: Model
     system_prompt: str | None
     tools: list[Tool]
     llamacpp_params: CustomizableLlamaCppParams
-    app: FastAPI | None
+    app: FastAPI | None = None
 
     __session: ClientSession | None
 
@@ -46,6 +51,7 @@ class ChatAgent:
         tools: list[Tool] | None = None,
         llamacpp_params: CustomizableLlamaCppParams = CustomizableLlamaCppParams(),
         expose_api: bool = True,
+        fastapi_params: AgentFastAPIParams | None = None,
     ):
         """
         Create a LibertAI chatbot agent that can answer to messages from users
@@ -82,7 +88,7 @@ class ChatAgent:
             )
             router.add_api_route("/model", self.get_model_information, methods=["GET"])
 
-            self.app = FastAPI(title="LibertAI ChatAgent")
+            self.app = FastAPI(title="LibertAI Agent", **(fastapi_params or {}))
             self.app.include_router(router)
 
     @property
