@@ -25,9 +25,9 @@ jobs:
       - name: Install dependencies
         run: poetry install --all-extras
       - name: Run tests with coverage report
-        run: poetry run pytest --cov-report=xml --junitxml=junit.xml
-        env:
-          TEST_HF_TOKEN: ${{ secrets.TEST_HF_TOKEN }}
+        run: |
+          export TEST_HF_TOKEN="${{ secrets.TEST_HF_TOKEN }}"
+          poetry run pytest --cov-report=xml --junitxml=junit.xml
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5
         with:
