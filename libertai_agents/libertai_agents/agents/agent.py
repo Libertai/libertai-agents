@@ -40,7 +40,7 @@ class Agent:
     system_prompt: str | None
     tools: list[Tool]
     llamacpp_params: CustomizableLlamaCppParams
-    app: FastAPI | None
+    app: FastAPI | None = None
 
     __session: ClientSession | None
 

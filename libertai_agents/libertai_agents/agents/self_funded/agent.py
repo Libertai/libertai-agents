@@ -36,7 +36,7 @@ class SelfFundedAgent:
     agent: Agent
     autonomous_config: SelfFundedAgentConfig
     __logger: Logger
-    __logs_storage: dict[str, str]
+    _logs_storage: dict[str, str]
 
     def __init__(
         self, autonomous_config: SelfFundedAgentConfig, **kwargs: Unpack[AgentArgs]
@@ -110,11 +110,11 @@ class SelfFundedAgent:
         )
 
         self.autonomous_config = autonomous_config
-        self.__logs_storage = {}
+        self._logs_storage = {}
 
         @self.agent.app.get("/survival-logs")
         async def get_survival_logs():
-            return self.__logs_storage
+            return self._logs_storage
 
     async def _scheduler(self):
         unit = self.autonomous_config.compute_think_unit
@@ -170,6 +170,6 @@ class SelfFundedAgent:
                 log = f"Agent response: {message.content}"
                 self.__logger.info(log)
             reflexion_logs.append(log)
-        self.__logs_storage[datetime.datetime.now().isoformat()] = "\n".join(
+        self._logs_storage[datetime.datetime.now().isoformat()] = "\n".join(
             reflexion_logs
         )

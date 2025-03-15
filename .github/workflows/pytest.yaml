@@ -23,7 +23,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'poetry'
       - name: Install dependencies
-        run: poetry install -E self-funded
+        run: poetry install --all-extras
       - name: Run tests with coverage report
         run: poetry run pytest --cov-report=xml --junitxml=junit.xml
         env:

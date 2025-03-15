@@ -12,9 +12,7 @@ from tests.utils.models import get_hf_token, get_random_model_id
 
 
 def test_self_funded_invalid_private_key():
-    config = SelfFundedAgentConfig(
-        private_key="invalid_private_key",
-    )
+    config = SelfFundedAgentConfig(private_key="invalid_private_key")
     with pytest.raises(binascii.Error):
         _agent = SelfFundedAgent(autonomous_config=config)
 
@@ -52,3 +50,24 @@ def test_self_funded_existing_agentkit_action_providers(eth_private_key):
             autonomous_config=config,
             model=get_model(get_random_model_id(), get_hf_token()),
         )
+
+
+def test_self_funded_no_fastapi(eth_private_key):
+    config = SelfFundedAgentConfig(private_key=eth_private_key)
+    with pytest.raises(ValueError):
+        _agent = SelfFundedAgent(
+            autonomous_config=config,
+            model=get_model(get_random_model_id(), get_hf_token()),
+            expose_api=False,
+        )
+
+
+async def test_self_funded_survival(eth_private_key):
+    config = SelfFundedAgentConfig(private_key=eth_private_key)
+    agent = SelfFundedAgent(
+        autonomous_config=config,
+        model=get_model(get_random_model_id(), get_hf_token()),
+    )
+
+    await agent.survival_reflexion()
+    assert len(agent._logs_storage.keys()) == 1
