@@ -1,7 +1,7 @@
 from typing import Literal, TypedDict
 
 from coinbase_agentkit import ActionProvider
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from libertai_agents.interfaces.llamacpp import CustomizableLlamaCppParams
 from libertai_agents.interfaces.tools import Tool
@@ -39,5 +39,4 @@ class SelfFundedAgentConfig(BaseModel):
     \nIf you consider that you have made a lot of money, you can call the AlephProvider_distribute_revenues tool to give it back to your creators.
     """
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
