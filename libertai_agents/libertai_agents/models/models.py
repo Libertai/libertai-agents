@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from libertai_agents.models.base import Model, ModelId
 from libertai_agents.models.hermes import HermesModel
 from libertai_agents.models.mistral import MistralModel
+from libertai_agents.models.watt import WattModel
 
 
 class ModelConfiguration(BaseModel):

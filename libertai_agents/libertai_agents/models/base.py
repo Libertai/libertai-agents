@@ -23,6 +23,8 @@ class Model(ABC):
     vm_url: str
     context_length: int
 
+    chat_template: str | None = None
+
     def __init__(
         self,
         model_id: ModelId,
@@ -43,7 +45,7 @@ class Model(ABC):
         self.vm_url = vm_url
         self.context_length = context_length
 
-    def __count_tokens(self, content: str) -> int:
+    def _count_tokens(self, content: str) -> int:
         """
         Count the number of tokens used in a string prompt
 
@@ -82,6 +84,7 @@ class Model(ABC):
                     tools=[x.args_schema for x in tools] if len(tools) > 0 else None,
                     tokenize=False,
                     add_generation_prompt=True,
+                    chat_template=self.chat_template
                 )
             except TemplateError:
                 # Some models (like mistralai/Mistral-Nemo-Instruct-2407) have strict templating restrictions,
@@ -91,7 +94,7 @@ class Model(ABC):
             if not isinstance(prompt, str):
                 raise TypeError("Generated prompt isn't a string")
 
-            if self.__count_tokens(prompt) <= self.context_length:
+            if self._count_tokens(prompt) <= self.context_length:
                 return prompt
 
         raise ValueError(
