@@ -32,7 +32,7 @@ MODELS_CONFIG: dict[ModelId, FullModelConfiguration] = {
         constructor=MistralModel,
     ),
     "watt-ai/watt-tool-8B": FullModelConfiguration(
-        vm_url="https://function-small.models.libertai.io/completion",
+        vm_url="https://watt-8b.model.libertai.io/completion",
         context_length=16384,
         constructor=WattModel,
     ),
