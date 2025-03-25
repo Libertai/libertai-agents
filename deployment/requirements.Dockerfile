@@ -4,7 +4,7 @@ FROM python:${PYTHON_VERSION}-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install build-essential -y && && apt-get clean
+# RUN apt-get update && apt-get install build-essential -y && && apt-get clean
 
 COPY pyproject.toml ./
 
