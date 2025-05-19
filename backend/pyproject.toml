@@ -14,7 +14,7 @@ python = "^3.12"
 fastapi = { extras = ["standard"], version = "^0.115.2" }
 aleph-sdk-python = "^1.1.0"
 libertai-utils = "0.0.12"
-setuptools = "^75.4.0"
+setuptools = "^78.1.1"
 paramiko = "^3.5.0"
 
 [tool.poetry.group.dev.dependencies]
