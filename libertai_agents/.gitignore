@@ -10,3 +10,5 @@
 /htmlcov
 coverage.xml
 junit.xml
+
+.env

@@ -274,7 +274,7 @@ async def update(
     return UpdateAgentResponse(instance_ip=hostname, error_log=stderr.read())
 
 
-@app.post("/agent/{agent_id}/ssh-key", description="Add an SSH to a deployed agent")
+@app.post("/agent/{agent_id}/ssh-key", description="Add an SSH key to a deployed agent")
 async def add_ssh_key(
     agent_id: str, body: AddSSHKeyAgentBody
 ) -> AddSSHKeyAgentResponse:

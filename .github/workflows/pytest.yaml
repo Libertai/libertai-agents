@@ -27,6 +27,7 @@ jobs:
       - name: Run tests with coverage report
         run: |
           export TEST_HF_TOKEN="${{ secrets.TEST_HF_TOKEN }}"
+          export TEST_LIBERTAI_API_KEY="${{ secrets.TEST_LIBERTAI_API_KEY }}"
           poetry run pytest --cov-report=xml --junitxml=junit.xml
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5

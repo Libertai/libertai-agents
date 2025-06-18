@@ -5,12 +5,11 @@ from pydantic import BaseModel
 
 from libertai_agents.models.base import Model, ModelId
 from libertai_agents.models.hermes import HermesModel
-from libertai_agents.models.mistral import MistralModel
 
 
 class ModelConfiguration(BaseModel):
-    vm_url: str
     context_length: int
+    ltai_id: str
 
 
 class FullModelConfiguration(ModelConfiguration):
@@ -21,14 +20,14 @@ MODEL_IDS: list[ModelId] = list(typing.get_args(ModelId))
 
 MODELS_CONFIG: dict[ModelId, FullModelConfiguration] = {
     "NousResearch/Hermes-3-Llama-3.1-8B": FullModelConfiguration(
-        vm_url="https://curated.aleph.cloud/vm/84df52ac4466d121ef3bb409bb14f315de7be4ce600e8948d71df6485aa5bcc3/completion",
         context_length=16384,
         constructor=HermesModel,
+        ltai_id="hermes-3-8b-tee",
     ),
-    "mistralai/Mistral-Nemo-Instruct-2407": FullModelConfiguration(
-        vm_url="https://curated.aleph.cloud/vm/2c4ad0bf343fb12924936cbc801732d95ce90f84cd895aa8bee82c0a062815c2/completion",
-        context_length=8192,
-        constructor=MistralModel,
+    "unsloth/gemma-3-27b-it": FullModelConfiguration(
+        context_length=32768,
+        constructor=HermesModel,
+        ltai_id="gemma-3-27b",
     ),
 }
 
