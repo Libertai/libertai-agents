@@ -7,3 +7,4 @@ class CustomizableLlamaCppParams(BaseModel):
 
 class LlamaCppParams(CustomizableLlamaCppParams):
     prompt: str
+    model: str

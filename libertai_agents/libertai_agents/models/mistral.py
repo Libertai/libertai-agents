@@ -7,10 +7,10 @@ from libertai_agents.models.base import Model, ModelId
 
 
 class MistralModel(Model):
-    def __init__(self, model_id: ModelId, vm_url: str, context_length: int):
+    def __init__(self, model_id: ModelId, ltai_id: str, context_length: int):
         super().__init__(
             model_id=model_id,
-            vm_url=vm_url,
+            ltai_id=ltai_id,
             context_length=context_length,
         )
 

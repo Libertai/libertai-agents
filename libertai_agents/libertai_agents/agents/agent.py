@@ -37,6 +37,7 @@ class AgentFastAPIParams(TypedDict, total=False):
 
 class Agent:
     model: Model
+    api_key: str
     system_prompt: str | None
     tools: list[Tool]
     llamacpp_params: CustomizableLlamaCppParams
@@ -47,6 +48,7 @@ class Agent:
     def __init__(
         self,
         model: Model,
+        api_key: str,
         system_prompt: str | None = None,
         tools: list[Tool] | None = None,
         llamacpp_params: CustomizableLlamaCppParams = CustomizableLlamaCppParams(),
@@ -57,6 +59,7 @@ class Agent:
         Create a LibertAI chatbot agent that can answer to messages from users
 
         :param model: The LLM you want to use, selected from the available ones
+        :param api_key: LibertAI API key to use for inference requests
         :param system_prompt: Customize the behavior of the agent with your own prompt
         :param tools: List of functions that the agent can call. Each function must be asynchronous, have a docstring and return a stringifyable response
         :param llamacpp_params: Override params given to llamacpp when calling the model
@@ -68,6 +71,7 @@ class Agent:
         if len({x.name for x in tools}) != len(tools):
             raise ValueError("Tool functions must have different names")
         self.model = model
+        self.api_key = api_key
         self.system_prompt = system_prompt
         self.tools = tools
         self.llamacpp_params = llamacpp_params
@@ -226,14 +230,22 @@ class Agent:
         :param prompt: Prompt to give to the model
         :return: String response (if no error)
         """
-        params = LlamaCppParams(prompt=prompt, **self.llamacpp_params.model_dump())
+        params = LlamaCppParams(
+            prompt=prompt,
+            model=self.model.ltai_id,
+            **self.llamacpp_params.model_dump(),
+        )
+
+        headers = {"Authorization": f"Bearer {self.api_key}"}
 
         wait_between_retries = 0.1
         max_retries = 150
         # Looping until we get a satisfying response
         for _ in range(max_retries):
             async with self.session.post(
-                self.model.vm_url, json=params.model_dump()
+                "https://api.libertai.io/completions",
+                headers=headers,
+                json=params.model_dump(),
             ) as response:
                 if response.status == HTTPStatus.OK:
                     response_data = await response.json()

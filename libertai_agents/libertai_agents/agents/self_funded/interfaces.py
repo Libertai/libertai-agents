@@ -10,6 +10,7 @@ from libertai_agents.models import Model
 
 class AgentArgs(TypedDict, total=False):
     model: Model
+    api_key: str
     system_prompt: str | None
     tools: list[Tool] | None
     llamacpp_params: CustomizableLlamaCppParams

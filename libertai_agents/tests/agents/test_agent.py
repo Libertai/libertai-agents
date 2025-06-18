@@ -14,6 +14,7 @@ from libertai_agents.models import get_model
 from libertai_agents.models.models import ModelConfiguration
 from tests.utils.models import (
     get_hf_token,
+    get_libertai_api_key,
     get_prompt_fixed_response,
     get_random_model_id,
 )
@@ -21,7 +22,10 @@ from tests.utils.models import (
 
 def test_create_agent_minimal():
     model_id = get_random_model_id()
-    agent = Agent(model=get_model(model_id, hf_token=get_hf_token()))
+    agent = Agent(
+        model=get_model(model_id, hf_token=get_hf_token()),
+        api_key=get_libertai_api_key(),
+    )
 
     assert len(agent.tools) == 0
     assert agent.model.model_id == model_id
@@ -36,9 +40,10 @@ def test_create_agent_with_config(fake_get_temperature_tool):
             get_random_model_id(),
             hf_token=get_hf_token(),
             custom_configuration=ModelConfiguration(
-                vm_url="https://example.org", context_length=context_length
+                context_length=context_length, ltai_id="test"
             ),
         ),
+        api_key=get_libertai_api_key(),
         system_prompt="You are a helpful assistant",
         tools=[Tool.from_function(fake_get_temperature_tool)],
         expose_api=False,
@@ -52,6 +57,7 @@ def test_create_agent_double_tool(fake_get_temperature_tool):
     with pytest.raises(ValueError):
         _agent = Agent(
             model=get_model(get_random_model_id(), get_hf_token()),
+            api_key=get_libertai_api_key(),
             tools=[
                 Tool.from_function(fake_get_temperature_tool),
                 Tool.from_function(fake_get_temperature_tool),
@@ -64,6 +70,7 @@ async def test_call_agent_basic():
 
     agent = Agent(
         model=get_model(get_random_model_id(), get_hf_token()),
+        api_key=get_libertai_api_key(),
         system_prompt=get_prompt_fixed_response(answer),
     )
     messages = []
@@ -81,6 +88,7 @@ async def test_call_agent_prompt_at_generation():
 
     agent = Agent(
         model=get_model(get_random_model_id(), get_hf_token()),
+        api_key=get_libertai_api_key(),
         system_prompt=get_prompt_fixed_response(other_answer),
     )
     messages = []
@@ -97,7 +105,10 @@ async def test_call_agent_prompt_at_generation():
 
 async def test_call_agent_use_tool(fake_get_temperature_tool):
     agent = Agent(
-        model=get_model(get_random_model_id(), get_hf_token()),
+        model=get_model(
+            "NousResearch/Hermes-3-Llama-3.1-8B", get_hf_token()
+        ),  # TODO: fix to use random model, Gemma fails currently
+        api_key=get_libertai_api_key(),
         tools=[Tool.from_function(fake_get_temperature_tool)],
     )
     messages = []

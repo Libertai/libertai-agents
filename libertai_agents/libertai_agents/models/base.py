@@ -11,7 +11,7 @@ from libertai_agents.interfaces.tools import Tool
 
 ModelId = Literal[
     "NousResearch/Hermes-3-Llama-3.1-8B",
-    "mistralai/Mistral-Nemo-Instruct-2407",
+    "unsloth/gemma-3-27b-it",
 ]
 
 
@@ -20,28 +20,28 @@ class Model(ABC):
 
     tokenizer: PreTrainedTokenizerFast
     model_id: ModelId
-    vm_url: str
     context_length: int
+    ltai_id: str
 
     def __init__(
         self,
         model_id: ModelId,
-        vm_url: str,
         context_length: int,
+        ltai_id: str,
     ):
         """
         Creates a new instance of a model
 
         :param model_id: HuggingFace ID of the model
-        :param vm_url: URL of the completion endpoint
         :param context_length: Number of tokens allowed
+        :param ltai_id: LibertAI ID of the model, used for pricing and other purposes
         """
         from transformers import AutoTokenizer
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         self.model_id = model_id
-        self.vm_url = vm_url
         self.context_length = context_length
+        self.ltai_id = ltai_id
 
     def __count_tokens(self, content: str) -> int:
         """
