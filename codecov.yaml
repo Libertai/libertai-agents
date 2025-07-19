@@ -1,6 +1,7 @@
 coverage:
   status:
     default_rules:
+      target: 50%
       threshold: 5
     patch:
       default:

@@ -3,6 +3,7 @@ import random
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
@@ -16,7 +17,10 @@ def get_random_model_id() -> ModelId:
 
 
 def get_hf_token() -> str | None:
-    return os.environ.get("TEST_HF_TOKEN")
+    hf_token = os.environ.get("TEST_HF_TOKEN")
+    if hf_token is None:
+        raise ValueError("TEST_HF_TOKEN environment variable must be set")
+    return hf_token
 
 
 def get_libertai_api_key() -> str:
