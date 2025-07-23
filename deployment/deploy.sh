@@ -3,8 +3,11 @@
 ZIP_PATH="/tmp/libertai-agent.zip"
 CODE_PATH="/root/libertai-agent"
 
+# Suppress debconf warnings and needrestart noise
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_SUSPEND=1
+
 # Setup
-export DEBIAN_FRONTEND=noninteractive # Suppress debconf warnings
 apt-get update
 apt-get install unzip -y
 if ! command -v docker &> /dev/null; then
@@ -17,7 +20,7 @@ apt-get install docker-compose-plugin -y
 
 # Stop previous agent (if any)
 if [ -d "$CODE_PATH" ]; then
-    cd "$CODE_PATH" && docker compose down
+    cd "$CODE_PATH" && docker compose down > /dev/null 2>&1
     cd ~
     rm -rf $CODE_PATH
 fi
@@ -25,7 +28,7 @@ fi
 # Starting to clean previous agent and preparing new one
 unzip $ZIP_PATH -d $CODE_PATH
 cd $CODE_PATH
-docker compose up -d --build > /dev/null
+docker compose up -d --build > /dev/null 2>&1
 
 # Cleanup
 rm -f $ZIP_PATH
