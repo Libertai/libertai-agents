@@ -1,0 +1,10 @@
+services:
+  libertai-agent:
+    build:
+      dockerfile: ./Dockerfile
+    container_name: libertai-agent
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env

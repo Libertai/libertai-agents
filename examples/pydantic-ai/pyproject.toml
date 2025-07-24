@@ -1,0 +1,26 @@
+[project]
+name = "pydantic-ai-libertai-example"
+version = "0.1.0"
+description = "Example of LibertAI integration in Pydantic AI"
+authors = [
+    { name = "Reza Rahemtola", email = "49811529+RezaRahemtola@users.noreply.github.com" },
+]
+readme = "README.md"
+requires-python = ">=3.12,<4"
+dependencies = [
+    "pydantic-ai (>=0.4.4,<0.5.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "fastapi[standard] (>=0.116.1,<0.117.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.17.0"
+ruff = "^0.12.4"
+
+[tool.poetry]
+package-mode = false
