@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import json
+import logging
 import time
 import weakref
 from asyncio import Future
@@ -11,6 +12,9 @@ from aiohttp import ClientSession
 from fastapi import APIRouter, FastAPI
 from starlette.responses import StreamingResponse
 from starlette.types import Lifespan
+
+# Logger for the agent module
+logger = logging.getLogger("libertai_agents")
 
 from libertai_agents.interfaces.llamacpp import (
     CustomizableLlamaCppParams,
@@ -42,6 +46,7 @@ class Agent:
     tools: list[Tool]
     llamacpp_params: CustomizableLlamaCppParams
     app: FastAPI | None = None
+    debug: bool
 
     __session: ClientSession | None
 
@@ -54,6 +59,7 @@ class Agent:
         llamacpp_params: CustomizableLlamaCppParams = CustomizableLlamaCppParams(),
         expose_api: bool = True,
         fastapi_params: AgentFastAPIParams | None = None,
+        debug: bool = False,
     ):
         """
         Create a LibertAI chatbot agent that can answer to messages from users
@@ -64,6 +70,7 @@ class Agent:
         :param tools: List of functions that the agent can call. Each function must be asynchronous, have a docstring and return a stringifyable response
         :param llamacpp_params: Override params given to llamacpp when calling the model
         :param expose_api: Set at False to avoid exposing an API (useful if you are using a custom trigger)
+        :param debug: Enable debug logging to see detailed information about the agent's processing
         """
         if tools is None:
             tools = []
@@ -75,7 +82,17 @@ class Agent:
         self.system_prompt = system_prompt
         self.tools = tools
         self.llamacpp_params = llamacpp_params
+        self.debug = debug
         self.__session = None
+
+        # Configure logging based on debug setting
+        if debug:
+            logging.basicConfig(
+                level=logging.DEBUG,
+                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+            logger.setLevel(logging.DEBUG)
+            logger.debug(f"Agent initialized with model={model.model_id}, tools={[t.name for t in tools]}")
 
         weakref.finalize(
             self, self.__sync_cleanup
@@ -142,10 +159,20 @@ class Agent:
         if len(messages) == 0:
             raise ValueError("No previous message to respond to")
 
-        for _ in range(MAX_TOOL_CALLS_DEPTH):
+        if self.debug:
+            logger.debug(f"Starting generate_answer with {len(messages)} messages")
+            logger.debug(f"Last message: {messages[-1].content[:100] if messages[-1].content else 'empty'}...")
+
+        for iteration in range(MAX_TOOL_CALLS_DEPTH):
+            if self.debug:
+                logger.debug(f"Iteration {iteration + 1}/{MAX_TOOL_CALLS_DEPTH}")
+            
             prompt = self.model.generate_prompt(
                 messages, self.tools, system_prompt=system_prompt or self.system_prompt
             )
+            
+            if self.debug:
+                logger.debug(f"Generated prompt length: {len(prompt)} chars")
 
             response = await self.__call_model(prompt)
 
@@ -153,10 +180,19 @@ class Agent:
                 # TODO: handle error correctly
                 raise ValueError("Model didn't respond")
 
+            if self.debug:
+                logger.debug(f"Model response length: {len(response)} chars")
+                logger.debug(f"Response preview: {response[:200]}...")
+
             tool_calls = self.model.extract_tool_calls_from_response(response)
             if len(tool_calls) == 0:
+                if self.debug:
+                    logger.debug("No tool calls detected, returning final answer")
                 yield Message(role="assistant", content=response)
                 return
+
+            if self.debug:
+                logger.debug(f"Detected {len(tool_calls)} tool call(s): {[tc['name'] for tc in tool_calls]}")
 
             # Executing the detected tool calls
             tool_calls_message = self.__create_tool_calls_message(tool_calls)
@@ -164,8 +200,15 @@ class Agent:
             if not only_final_answer:
                 yield tool_calls_message
 
+            if self.debug:
+                logger.debug(f"Executing tool calls...")
+            
             executed_calls = self.__execute_tool_calls(tool_calls_message.tool_calls)
             results = await asyncio.gather(*executed_calls)
+            
+            if self.debug:
+                for i, call in enumerate(tool_calls_message.tool_calls):
+                    logger.debug(f"Tool '{call.function.name}' returned: {str(results[i])[:100]}...")
             tool_results_messages: list[Message] = [
                 ToolResponseMessage(
                     role="tool",
