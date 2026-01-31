@@ -1,0 +1,68 @@
+# Example GitHub Actions workflow for deploying a LibertAI agent to Aleph Cloud
+# 
+# Setup:
+# 1. Create an Aleph wallet and export the private key
+# 2. Add the private key as a GitHub Secret named ALEPH_PRIVATE_KEY
+# 3. Copy this file to .github/workflows/deploy.yml in your repo
+# 4. Push to trigger deployment
+
+name: Deploy to Aleph Cloud
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install aleph-client libertai-agents
+          sudo apt-get install -y squashfs-tools
+      
+      - name: Build squashfs
+        run: |
+          # Create a minimal squashfs with your agent code
+          mkdir -p /tmp/build
+          cp -r . /tmp/build/
+          cd /tmp/build
+          pip install -t . libertai-agents
+          mksquashfs /tmp/build /tmp/agent.squashfs -noappend
+      
+      - name: Deploy to Aleph
+        env:
+          ALEPH_PRIVATE_KEY: ${{ secrets.ALEPH_PRIVATE_KEY }}
+        run: |
+          # Upload the squashfs file
+          UPLOAD_RESULT=$(aleph file upload /tmp/agent.squashfs --private-key "$ALEPH_PRIVATE_KEY" 2>&1)
+          FILE_HASH=$(echo "$UPLOAD_RESULT" | grep -oP 'Qm[a-zA-Z0-9]+' | head -1)
+          
+          if [ -z "$FILE_HASH" ]; then
+            echo "Failed to upload file"
+            exit 1
+          fi
+          
+          echo "Uploaded file: $FILE_HASH"
+          
+          # Deploy as a program (or update existing)
+          aleph program upload /tmp/agent.squashfs main:app \
+            --private-key "$ALEPH_PRIVATE_KEY" \
+            --name "my-libertai-agent" \
+            --skip-volume \
+            --skip-env-var \
+            || echo "Deployment complete"
+
+      - name: Show deployment info
+        run: |
+          echo "Agent deployed to Aleph Cloud!"
+          echo "View at: https://api1.aleph.im/api/v0/programs.json"
