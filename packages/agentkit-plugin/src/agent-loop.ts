@@ -91,5 +91,9 @@ export async function runAgentLoop(
 
   console.log("[llm] max tool rounds reached, getting final response");
   const final = await client.chatCompletion(model, messages);
-  return { response: final.choices[0].message.content ?? "", toolExecutions, txHashes };
+  return {
+    response: final.choices[0].message.content ?? "",
+    toolExecutions,
+    txHashes,
+  };
 }

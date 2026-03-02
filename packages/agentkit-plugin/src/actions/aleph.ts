@@ -4,7 +4,13 @@ import {
   EvmWalletProvider,
   SuperfluidQueryActionProvider,
 } from "@coinbase/agentkit";
-import { createPublicClient, formatUnits, http, parseEther, encodeFunctionData } from "viem";
+import {
+  createPublicClient,
+  formatUnits,
+  http,
+  parseEther,
+  encodeFunctionData,
+} from "viem";
 import { base } from "viem/chains";
 import {
   ALEPH_ADDRESS,
@@ -108,7 +114,10 @@ export function createAlephActionProvider(rpcUrl?: string) {
       schema: z.object({
         ethAmount: z.string().describe("Amount of ETH to swap, e.g. '0.01'"),
       }),
-      invoke: async (walletProvider: EvmWalletProvider, args: { ethAmount: string }) => {
+      invoke: async (
+        walletProvider: EvmWalletProvider,
+        args: { ethAmount: string },
+      ) => {
         try {
           const amountInWei = parseEther(args.ethAmount);
           const address = walletProvider.getAddress() as `0x${string}`;
