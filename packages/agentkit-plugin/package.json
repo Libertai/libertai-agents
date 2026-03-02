@@ -1,7 +1,7 @@
 {
   "name": "@libertai/agentkit-plugin",
   "version": "0.1.0",
-  "description": "Coinbase AgentKit plugin for LibertAI — build autonomous onchain agents with Aleph Cloud, x402 payment tracking, and predefined action providers",
+  "description": "Coinbase AgentKit plugin for LibertAI — build autonomous onchain agents with predefined action providers",
   "type": "module",
   "license": "MIT",
   "author": "LibertAI",
@@ -21,7 +21,6 @@
     "blockchain",
     "agent",
     "aleph",
-    "x402",
     "libertai"
   ],
   "files": [
@@ -35,14 +34,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./x402": {
-      "types": "./dist/x402-tracker.d.ts",
-      "import": "./dist/x402-tracker.js"
-    },
-    "./aleph": {
-      "types": "./dist/aleph-publisher.d.ts",
-      "import": "./dist/aleph-publisher.js"
-    },
     "./agent-loop": {
       "types": "./dist/agent-loop.d.ts",
       "import": "./dist/agent-loop.js"
@@ -50,10 +41,6 @@
     "./tools": {
       "types": "./dist/tools.d.ts",
       "import": "./dist/tools.js"
-    },
-    "./summarizer": {
-      "types": "./dist/summarizer.d.ts",
-      "import": "./dist/summarizer.js"
     },
     "./actions": {
       "types": "./dist/actions/index.d.ts",
@@ -81,11 +68,7 @@
     "viem": "^2.0.0"
   },
   "dependencies": {
-    "@aleph-sdk/client": "^1.4.5",
-    "@aleph-sdk/ethereum": "^1.5.0",
-    "@aleph-sdk/message": "^1.6.3",
     "decimal.js": "^10.0.0",
-    "ethers": "^5.7.2",
     "ox": "^0.12.4",
     "zod": "^3.0.0",
     "zod-to-json-schema": "^3.25.0"
