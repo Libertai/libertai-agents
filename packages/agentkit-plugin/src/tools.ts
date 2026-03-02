@@ -15,15 +15,17 @@ export function actionsToTools(actions: Action[]): {
       function: {
         name: action.name,
         description: action.description,
-        parameters: zodToJsonSchema(action.schema, { target: "openApi3" }) as Record<
-          string,
-          unknown
-        >,
+        parameters: zodToJsonSchema(action.schema, {
+          target: "openApi3",
+        }) as Record<string, unknown>,
       },
     };
   });
 
-  const executeTool = async (name: string, argsJson: string): Promise<string> => {
+  const executeTool = async (
+    name: string,
+    argsJson: string,
+  ): Promise<string> => {
     const handler = actionMap.get(name);
     if (!handler) {
       return `Error: unknown tool "${name}"`;
