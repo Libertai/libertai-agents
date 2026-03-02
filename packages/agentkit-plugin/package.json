@@ -1,0 +1,104 @@
+{
+  "name": "@libertai/agentkit-plugin",
+  "version": "0.1.0",
+  "description": "Coinbase AgentKit plugin for LibertAI — build autonomous onchain agents with Aleph Cloud, x402 payment tracking, and predefined action providers",
+  "type": "module",
+  "license": "MIT",
+  "author": "LibertAI",
+  "homepage": "https://github.com/LibertAI/libertai-agents/tree/main/packages/agentkit-plugin#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LibertAI/libertai-agents.git",
+    "directory": "packages/agentkit-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/LibertAI/libertai-agents/issues"
+  },
+  "keywords": [
+    "agentkit",
+    "coinbase",
+    "base",
+    "blockchain",
+    "agent",
+    "aleph",
+    "x402",
+    "libertai"
+  ],
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./x402": {
+      "types": "./dist/x402-tracker.d.ts",
+      "import": "./dist/x402-tracker.js"
+    },
+    "./aleph": {
+      "types": "./dist/aleph-publisher.d.ts",
+      "import": "./dist/aleph-publisher.js"
+    },
+    "./agent-loop": {
+      "types": "./dist/agent-loop.d.ts",
+      "import": "./dist/agent-loop.js"
+    },
+    "./tools": {
+      "types": "./dist/tools.d.ts",
+      "import": "./dist/tools.js"
+    },
+    "./summarizer": {
+      "types": "./dist/summarizer.d.ts",
+      "import": "./dist/summarizer.js"
+    },
+    "./actions": {
+      "types": "./dist/actions/index.d.ts",
+      "import": "./dist/actions/index.js"
+    },
+    "./actions/aleph": {
+      "types": "./dist/actions/aleph.d.ts",
+      "import": "./dist/actions/aleph.js"
+    },
+    "./wallet": {
+      "types": "./dist/wallet.d.ts",
+      "import": "./dist/wallet.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/"
+  },
+  "peerDependencies": {
+    "@blockrun/llm": "^0.3.0",
+    "@coinbase/agentkit": "^0.10.4",
+    "viem": "^2.0.0"
+  },
+  "dependencies": {
+    "@aleph-sdk/client": "^1.4.5",
+    "@aleph-sdk/ethereum": "^1.5.0",
+    "@aleph-sdk/message": "^1.6.3",
+    "decimal.js": "^10.0.0",
+    "ethers": "^5.7.2",
+    "ox": "^0.12.4",
+    "zod": "^3.0.0",
+    "zod-to-json-schema": "^3.25.0"
+  },
+  "devDependencies": {
+    "@blockrun/llm": "^0.3.0",
+    "@coinbase/agentkit": "^0.10.4",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "^5.7.0",
+    "viem": "^2.45.3"
+  }
+}
