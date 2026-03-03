@@ -10,7 +10,7 @@ on:
 
 jobs:
   agentkit-plugin-ts-ci:
-    name: Build & Lint
+    name: Build, Lint & Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -30,3 +30,5 @@ jobs:
         run: npm run lint
       - name: Build
         run: npm run build
+      - name: Test
+        run: npm test
