@@ -1,14 +1,14 @@
 import type { Action } from "@coinbase/agentkit";
-import type { Tool } from "@blockrun/llm";
+import type { ChatCompletionTool } from "openai/resources";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 export function actionsToTools(actions: Action[]): {
-  tools: Tool[];
+  tools: ChatCompletionTool[];
   executeTool: (name: string, argsJson: string) => Promise<string>;
 } {
   const actionMap = new Map<string, Action["invoke"]>();
 
-  const tools: Tool[] = actions.map((action) => {
+  const tools: ChatCompletionTool[] = actions.map((action) => {
     actionMap.set(action.name, action.invoke);
     return {
       type: "function" as const,
