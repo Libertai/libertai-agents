@@ -68,6 +68,7 @@ describe("createLLMClient", () => {
 
     mockFetch.mockResolvedValueOnce(make200Response());
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fetchFn = (client as any).fetch as typeof fetch;
     const result = await fetchFn(
       "https://api.libertai.io/v1/chat/completions",
@@ -90,6 +91,7 @@ describe("createLLMClient", () => {
       .mockResolvedValueOnce(make402Response())
       .mockResolvedValueOnce(make200Response());
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fetchFn = (client as any).fetch as typeof fetch;
     const result = await fetchFn(
       "https://api.libertai.io/v1/chat/completions",
@@ -127,6 +129,7 @@ describe("createLLMClient", () => {
 
     mockFetch.mockResolvedValueOnce(make200Response());
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fetchFn = (client as any).fetch as typeof fetch;
     await fetchFn("https://api.libertai.io/v1/chat/completions", {
       method: "POST",
@@ -152,6 +155,7 @@ describe("createLLMClient", () => {
       }),
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fetchFn = (client as any).fetch as typeof fetch;
     await expect(
       fetchFn("https://api.libertai.io/v1/chat/completions", {
