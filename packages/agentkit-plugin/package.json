@@ -66,18 +66,17 @@
   },
   "peerDependencies": {
     "@coinbase/agentkit": "^0.10.4",
+    "openai": "^4.0.0",
     "viem": "^2.0.0"
   },
   "dependencies": {
-    "@x402/evm": "^2.5.0",
-    "@x402/fetch": "^2.5.0",
-    "openai": "^4.0.0",
     "zod": "^3.0.0",
     "zod-to-json-schema": "^3.25.0"
   },
   "devDependencies": {
     "@coinbase/agentkit": "^0.10.4",
     "@eslint/js": "^9.0.0",
+    "openai": "^4.0.0",
     "@types/node": "^22.0.0",
     "eslint": "^9.0.0",
     "prettier": "^3.8.1",
