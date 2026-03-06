@@ -41,7 +41,7 @@
     "format:check": "prettier --check src/ tests/",
     "test": "vitest run"
   },
-  "peerDependencies": {
+  "dependencies": {
     "viem": "^2.0.0"
   },
   "devDependencies": {

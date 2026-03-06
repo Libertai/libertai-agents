@@ -5,7 +5,7 @@
 ## Install
 
 ```bash
-npm install @libertai/x402 viem
+npm install @libertai/x402
 ```
 
 ## Usage with OpenAI SDK
