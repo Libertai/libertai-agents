@@ -1,6 +1,6 @@
 # @libertai/agentkit-plugin
 
-Build autonomous agents that pay for their own inference and compute — powered by Coinbase [AgentKit](https://github.com/coinbase/agentkit), [Aleph Cloud](https://aleph.cloud), and [LibertAI](https://libertai.io).\
+Build autonomous agents that pay for their own compute and inference — powered by Coinbase [AgentKit](https://github.com/coinbase/agentkit), [Aleph Cloud](https://aleph.cloud), and [LibertAI](https://libertai.io).\
 Includes an OpenAI-compatible LLM client (paid via [x402](https://www.x402.org/)), Aleph credit management tools, and AgentKit-to-OpenAI tool-calling helpers.
 
 ## Install

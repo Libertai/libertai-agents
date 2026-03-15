@@ -1,18 +1,18 @@
 {
   "name": "@libertai/agentkit-plugin",
   "version": "0.1.1",
-  "description": "Coinbase AgentKit plugin for LibertAI — build autonomous onchain agents with predefined action providers",
+  "description": "Build autonomous agents that pay for their own compute and inference — powered by AgentKit, Aleph Cloud, and LibertAI",
   "type": "module",
   "license": "MIT",
   "author": "LibertAI",
-  "homepage": "https://github.com/LibertAI/libertai-agents/tree/main/packages/agentkit-plugin#readme",
+  "homepage": "https://github.com/Libertai/libertai-agents/tree/main/packages/agentkit-plugin#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LibertAI/libertai-agents.git",
+    "url": "git+https://github.com/Libertai/libertai-agents.git",
     "directory": "packages/agentkit-plugin"
   },
   "bugs": {
-    "url": "https://github.com/LibertAI/libertai-agents/issues"
+    "url": "https://github.com/Libertai/libertai-agents/issues"
   },
   "keywords": [
     "agentkit",

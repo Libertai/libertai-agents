@@ -5,14 +5,14 @@
   "type": "module",
   "license": "MIT",
   "author": "LibertAI",
-  "homepage": "https://github.com/LibertAI/libertai-agents/tree/main/packages/x402#readme",
+  "homepage": "https://github.com/Libertai/libertai-agents/tree/main/packages/x402#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LibertAI/libertai-agents.git",
+    "url": "git+https://github.com/Libertai/libertai-agents.git",
     "directory": "packages/x402"
   },
   "bugs": {
-    "url": "https://github.com/LibertAI/libertai-agents/issues"
+    "url": "https://github.com/Libertai/libertai-agents/issues"
   },
   "keywords": [
     "x402",
