@@ -56,9 +56,7 @@ export function createAlephActionProvider(
             const toUsd = (credits: number) => credits / 10 ** CREDITS_DECIMALS;
 
             const balanceUsd = toUsd(balanceData.credit_balance);
-            const costPerSecondUsd = toUsd(
-              costsData.summary.total_cost_credit,
-            );
+            const costPerSecondUsd = toUsd(costsData.summary.total_cost_credit);
             const costPerDayUsd = costPerSecondUsd * 86400;
             const runwayDays =
               costPerDayUsd > 0 ? balanceUsd / costPerDayUsd : null;

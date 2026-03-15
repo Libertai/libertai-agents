@@ -1,6 +1,6 @@
 {
   "name": "@libertai/agentkit-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Coinbase AgentKit plugin for LibertAI — build autonomous onchain agents with predefined action providers",
   "type": "module",
   "license": "MIT",

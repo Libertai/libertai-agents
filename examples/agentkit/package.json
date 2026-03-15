@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@coinbase/agentkit": "^0.10.4",
-    "@libertai/agentkit-plugin": "file:../../packages/agentkit-plugin",
+    "@libertai/agentkit-plugin": "^0.1.0",
     "dotenv": "^16.4.7",
     "openai": "^4.0.0",
     "viem": "^2.0.0"
