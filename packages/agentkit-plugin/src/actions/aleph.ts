@@ -1,152 +1,117 @@
+import { customActionProvider, EvmWalletProvider } from "@coinbase/agentkit";
+import { wrapFetchWithPayment } from "@libertai/x402";
+import type { Hex } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 import { z } from "zod";
-import {
-  customActionProvider,
-  EvmWalletProvider,
-  SuperfluidQueryActionProvider,
-} from "@coinbase/agentkit";
-import {
-  createPublicClient,
-  formatUnits,
-  http,
-  parseEther,
-  encodeFunctionData,
-} from "viem";
-import { base } from "viem/chains";
-import {
-  ALEPH_ADDRESS,
-  WETH_ADDRESS,
-  UNISWAP_ROUTER,
-  UNISWAP_ALEPH_POOL,
-  uniswapV3PoolAbi,
-  uniswapRouterAbi,
-} from "./constants.js";
 
-const balanceOfAbi = [
-  {
-    inputs: [{ name: "account", type: "address" }],
-    name: "balanceOf",
-    outputs: [{ name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
+const DEFAULT_ALEPH_API_URLS = [
+  "https://api2.aleph.im",
+  "https://api3.aleph.im",
+];
 
-export function createAlephActionProvider(rpcUrl?: string) {
-  const publicClient = createPublicClient({
-    chain: base,
-    transport: http(rpcUrl),
-  });
+const LIBERTAI_API_BASE = "https://api.libertai.io";
+const CREDITS_DECIMALS = 6;
+
+interface AlephOptions {
+  alephApiUrls?: string[];
+}
+
+export function createAlephActionProvider(
+  privateKey: Hex,
+  options?: AlephOptions,
+) {
+  const alephApiUrls = options?.alephApiUrls ?? DEFAULT_ALEPH_API_URLS;
+  const account = privateKeyToAccount(privateKey);
+  const fetchWithPayment = wrapFetchWithPayment(privateKey);
 
   return customActionProvider<EvmWalletProvider>([
     {
-      name: "get_aleph_info",
+      name: "get_credits_info",
       description:
-        "Get your current ALEPH balance, hourly consumption rate, estimated hours of compute left, ETH balance, and ALEPH/ETH price. Use this to decide whether you need to buy more ALEPH.",
+        "Get your current Aleph credit balance (in USD), cost per day (in USD), and estimated runway in days. Use this to decide whether you need to buy more credits.",
       schema: z.object({}),
-      invoke: async (walletProvider: EvmWalletProvider, _args: unknown) => {
-        try {
-          const address = walletProvider.getAddress() as `0x${string}`;
+      invoke: async (_walletProvider: EvmWalletProvider, _args: unknown) => {
+        const address = account.address;
 
-          const sfQuery = new SuperfluidQueryActionProvider();
-          const streamsResult = await sfQuery.queryStreams(walletProvider);
-
-          let alephPerHour = 0;
+        for (const baseUrl of alephApiUrls) {
           try {
-            const jsonStr = streamsResult.replace("Current outflows are ", "");
-            const outflows = JSON.parse(jsonStr) as Array<{
-              currentFlowRate: string;
-              token: { symbol: string };
-              receiver: { id: string };
-            }>;
-            const alephOutflows = outflows.filter((o) =>
-              o.token.symbol.toLowerCase().includes("aleph"),
+            const [balanceRes, costsRes] = await Promise.all([
+              fetch(`${baseUrl}/api/v0/addresses/${address}/balance`),
+              fetch(
+                `${baseUrl}/api/v0/costs?include_details=0&include_size=true&address=${address}`,
+              ),
+            ]);
+
+            if (!balanceRes.ok || !costsRes.ok) {
+              continue;
+            }
+
+            const balanceData = (await balanceRes.json()) as {
+              credit_balance: number;
+            };
+            const costsData = (await costsRes.json()) as {
+              summary: { total_cost_credit: number };
+            };
+
+            const toUsd = (credits: number) => credits / 10 ** CREDITS_DECIMALS;
+
+            const balanceUsd = toUsd(balanceData.credit_balance);
+            const costPerSecondUsd = toUsd(
+              costsData.summary.total_cost_credit,
             );
-            const totalFlowRate = alephOutflows.reduce(
-              (sum, o) => sum + BigInt(o.currentFlowRate),
-              0n,
-            );
-            alephPerHour = parseFloat(formatUnits(totalFlowRate * 3600n, 18));
+            const costPerDayUsd = costPerSecondUsd * 86400;
+            const runwayDays =
+              costPerDayUsd > 0 ? balanceUsd / costPerDayUsd : null;
+
+            return JSON.stringify({
+              balance_usd: balanceUsd,
+              cost_per_day_usd: costPerDayUsd,
+              runway_days: runwayDays,
+            });
           } catch {
-            // No outflows or parse error
+            continue;
           }
-
-          const rawBalance = await publicClient.readContract({
-            address: ALEPH_ADDRESS,
-            abi: balanceOfAbi,
-            functionName: "balanceOf",
-            args: [address],
-          });
-          const alephBalance = parseFloat(formatUnits(rawBalance, 18));
-
-          let hoursLeft = 1000000;
-          if (alephPerHour > 0) {
-            hoursLeft = Math.round(alephBalance / alephPerHour);
-          }
-
-          const ethBalanceWei = await publicClient.getBalance({ address });
-          const ethBalance = parseFloat(formatUnits(ethBalanceWei, 18));
-
-          const slot0 = await publicClient.readContract({
-            address: UNISWAP_ALEPH_POOL,
-            abi: uniswapV3PoolAbi,
-            functionName: "slot0",
-          });
-          const sqrtPriceX96 = slot0[0];
-          const price = Number(sqrtPriceX96) / 2 ** 96;
-          const alephPerEth = price * price;
-
-          return JSON.stringify({
-            aleph_balance: Math.round(alephBalance * 1000) / 1000,
-            aleph_consumed_per_hour: Math.round(alephPerHour * 1000) / 1000,
-            hours_left_until_death: hoursLeft,
-            eth_balance: Math.round(ethBalance * 10000) / 10000,
-            aleph_per_eth: Math.round(alephPerEth * 100) / 100,
-          });
-        } catch (err) {
-          return `Error getting ALEPH info: ${err instanceof Error ? err.message : String(err)}`;
         }
+
+        return "Error: failed to fetch credits info from all Aleph API endpoints";
       },
     },
     {
-      name: "swap_eth_to_aleph",
+      name: "buy_credits",
       description:
-        "Swap ETH to ALEPH via Uniswap V3 to pay for your computing. Provide the amount of ETH to swap.",
+        "Buy Aleph credits using x402 payment. Specify the amount in USD to spend on credits.",
       schema: z.object({
-        ethAmount: z.string().describe("Amount of ETH to swap, e.g. '0.01'"),
+        amount: z.number().positive().describe("Amount in USD to spend"),
       }),
       invoke: async (
-        walletProvider: EvmWalletProvider,
-        args: { ethAmount: string },
+        _walletProvider: EvmWalletProvider,
+        args: { amount: number },
       ) => {
         try {
-          const amountInWei = parseEther(args.ethAmount);
-          const address = walletProvider.getAddress() as `0x${string}`;
+          const address = account.address;
 
-          const data = encodeFunctionData({
-            abi: uniswapRouterAbi,
-            functionName: "exactInputSingle",
-            args: [
-              {
-                tokenIn: WETH_ADDRESS,
-                tokenOut: ALEPH_ADDRESS,
-                fee: 10000,
-                recipient: address,
-                amountIn: amountInWei,
-                amountOutMinimum: 0n,
-                sqrtPriceLimitX96: 0n,
-              },
-            ],
-          });
+          const response = await fetchWithPayment(
+            `${LIBERTAI_API_BASE}/libertai/aleph-credits`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ address, amount: args.amount }),
+            },
+          );
 
-          const txHash = await walletProvider.sendTransaction({
-            to: UNISWAP_ROUTER,
-            data,
-            value: amountInWei,
-          });
+          if (!response.ok) {
+            const text = await response.text();
+            return `Error buying credits: ${response.status} ${text}`;
+          }
 
-          return `Swap transaction sent. Hash: ${txHash}`;
+          const result = (await response.json()) as {
+            status: string;
+            credits_purchased: number;
+            recipient: string;
+          };
+          return JSON.stringify(result);
         } catch (err) {
-          return `Error swapping ETH to ALEPH: ${err instanceof Error ? err.message : String(err)}`;
+          return `Error buying credits: ${err instanceof Error ? err.message : String(err)}`;
         }
       },
     },

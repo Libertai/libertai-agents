@@ -10,11 +10,11 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 import { config } from "./config.js";
 
 const SYSTEM_PROMPT = `You are an autonomous AI agent on Base blockchain.
-You have a wallet with ETH and USDC. You pay for compute via ALEPH streaming.
+You have a wallet with ETH and USDC. You pay for compute via Aleph credits.
 
 Each cycle:
-1. Check your balances (ETH, USDC, ALEPH)
-2. If ALEPH is running low, swap some ETH for ALEPH
+1. Check your balances (ETH, USDC) and credit info
+2. If credits are running low, buy more credits
 3. If ETH is too low, swap some USDC for ETH
 4. Report your status
 
@@ -30,7 +30,7 @@ export async function startAgent() {
     actionProviders: [
       walletActionProvider(),
       erc20ActionProvider(),
-      createAlephActionProvider(config.rpcUrl),
+      createAlephActionProvider(config.privateKey),
     ],
   });
 
