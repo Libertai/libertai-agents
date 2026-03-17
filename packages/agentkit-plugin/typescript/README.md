@@ -18,7 +18,6 @@ import {
   createAgentWallet,
   createAlephActionProvider,
   actionsToTools,
-  getBalances,
 } from "@libertai/agentkit-plugin";
 
 // 1. Create wallet

@@ -21,7 +21,6 @@ from libertai_agentkit_plugin import (
     create_llm_client,
     create_agent_wallet,
     actions_to_tools,
-    get_balances,
 )
 from libertai_agentkit_plugin.actions.aleph import AlephActionProvider
 
