@@ -5,11 +5,11 @@
   "type": "module",
   "license": "MIT",
   "author": "LibertAI",
-  "homepage": "https://github.com/Libertai/libertai-agents/tree/main/packages/agentkit-plugin#readme",
+  "homepage": "https://github.com/Libertai/libertai-agents/tree/main/packages/agentkit-plugin/typescript#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Libertai/libertai-agents.git",
-    "directory": "packages/agentkit-plugin"
+    "directory": "packages/agentkit-plugin/typescript"
   },
   "bugs": {
     "url": "https://github.com/Libertai/libertai-agents/issues"
