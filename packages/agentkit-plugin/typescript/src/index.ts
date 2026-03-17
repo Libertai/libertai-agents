@@ -4,4 +4,4 @@ export { actionsToTools } from "./tools.js";
 export { createAlephActionProvider } from "./actions/aleph.js";
 export { createAgentWallet, getBalances } from "./wallet.js";
 export type { WalletInfo } from "./wallet.js";
-export type { ToolExecution, ActivityType, AgentActivity } from "./types.js";
+export type { ToolExecution } from "./types.js";
