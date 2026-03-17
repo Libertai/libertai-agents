@@ -14,7 +14,6 @@ from libertai_agentkit_plugin import (
     actions_to_tools,
     create_agent_wallet,
     create_llm_client,
-    get_balances,
 )
 from libertai_agentkit_plugin.actions.aleph import AlephActionProvider
 
@@ -58,12 +57,6 @@ async def start_agent() -> None:
     while True:
         cycle += 1
         print(f"\n=== Cycle {cycle} ===")
-
-        try:
-            balances = get_balances(wallet_provider)
-            print(f"Balances: {balances.eth_balance} ETH | {balances.usdc_balance} USDC")
-        except Exception as e:
-            print(f"Failed to fetch balances: {e}")
 
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},

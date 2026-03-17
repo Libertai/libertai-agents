@@ -4,7 +4,6 @@ import {
   createAgentWallet,
   createAlephActionProvider,
   createLLMClient,
-  getBalances,
 } from "@libertai/agentkit-plugin";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
 import { config } from "./config.js";
@@ -46,13 +45,6 @@ export async function startAgent() {
   while (true) {
     cycle++;
     console.log(`\n=== Cycle ${cycle} ===`);
-
-    try {
-      const balances = await getBalances(wallet);
-      console.log(`Balances: ${balances.ethBalance} ETH | ${balances.usdcBalance} USDC`);
-    } catch (err) {
-      console.warn("Failed to fetch balances:", err);
-    }
 
     const messages: ChatCompletionMessageParam[] = [
       { role: "system", content: SYSTEM_PROMPT },
