@@ -21,7 +21,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: "qwen3-coder-next",
+  model: "qwen3.5-27b",
   messages: [{ role: "user", content: "Hello!" }],
 });
 
@@ -43,7 +43,7 @@ const response = await fetchWithPayment(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "qwen3-coder-next",
+      model: "qwen3.5-27b",
       messages: [{ role: "user", content: "Hello!" }],
     }),
   },
