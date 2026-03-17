@@ -37,8 +37,18 @@ def _get_permit_nonce(asset: str, owner: str) -> int:
             "method": "eth_call",
             "params": [{"to": to_checksum_address(asset), "data": data}, "latest"],
         },
+        timeout=10.0,
     )
-    return int(resp.json()["result"], 16)
+    resp.raise_for_status()
+    payload = resp.json()
+    if "error" in payload and payload["error"] is not None:
+        raise RuntimeError(
+            f"JSON-RPC error fetching permit nonce: {payload['error']}"
+        )
+    result = payload.get("result")
+    if not isinstance(result, str):
+        raise ValueError("Missing 'result' in JSON-RPC response for permit nonce")
+    return int(result, 16)
 
 
 def create_payment_header(
@@ -49,6 +59,11 @@ def create_payment_header(
     account: LocalAccount = Account.from_key(private_key)
     now = int(time.time())
     primary_type = requirements.primary_type
+
+    if requirements.network != "eip155:8453":
+        raise ValueError(
+            f"Unsupported network '{requirements.network}', expected 'eip155:8453' (Base)"
+        )
 
     domain = {
         "name": requirements.name,

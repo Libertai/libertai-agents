@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from functools import partial
 from typing import Any
 
+import anyio
 import httpx
 
 from libertai_x402.sign import create_payment_header
@@ -29,13 +31,23 @@ class _PaymentTransport(httpx.AsyncBaseTransport):
             raise ValueError("x402: 402 response missing accepts[0]")
 
         requirements = PaymentRequirements.from_dict(accepts[0])
-        payment_header = create_payment_header(self._private_key, requirements)
+        payment_header = await anyio.to_thread.run_sync(
+            partial(create_payment_header, self._private_key, requirements)
+        )
 
-        request.headers["x-payment"] = payment_header
-        if request.headers.get("authorization") == "Bearer x402":
-            request.headers.pop("authorization")
+        headers = request.headers.copy()
+        headers["x-payment"] = payment_header
+        if headers.get("authorization") == "Bearer x402":
+            headers.pop("authorization")
 
-        return await self._transport.handle_async_request(request)
+        retry_request = httpx.Request(
+            method=request.method,
+            url=request.url,
+            headers=headers,
+            content=request.content,
+            extensions=request.extensions,
+        )
+        return await self._transport.handle_async_request(retry_request)
 
 
 def create_payment_client(private_key: str, **kwargs: Any) -> httpx.AsyncClient:
