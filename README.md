@@ -1,6 +1,7 @@
 <h1 align="center">LibertAI Agents</h1>
 
-![banner](.github/assets/agents-banner.png)
+<img width="3000" height="1000" alt="image" src="https://github.com/user-attachments/assets/abbc096c-f675-4967-abaf-24d34d8f4095" />
+
 
 Tools and integrations for building **self-sustaining AI agents** that pay for their own compute and inference.
 
