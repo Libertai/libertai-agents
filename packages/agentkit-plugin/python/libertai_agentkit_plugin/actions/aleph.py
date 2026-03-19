@@ -53,7 +53,7 @@ class AlephActionProvider(ActionProvider[WalletProvider]):
         schema=GetCreditsInfoInput,
     )
     def get_credits_info(
-        self, _wallet_provider: WalletProvider, args: dict[str, Any]
+        self, wallet_provider: WalletProvider, args: dict[str, Any]
     ) -> str:
         address = self._account.address
 
@@ -83,7 +83,7 @@ class AlephActionProvider(ActionProvider[WalletProvider]):
                     return credits / 10**CREDITS_DECIMALS
 
                 balance_usd = to_usd(balance_data["credit_balance"])
-                cost_per_second_usd = to_usd(costs_data["summary"]["total_cost_credit"])
+                cost_per_second_usd = to_usd(float(costs_data["summary"]["total_cost_credit"]))
                 cost_per_day_usd = cost_per_second_usd * 86400
                 runway_days = (
                     balance_usd / cost_per_day_usd if cost_per_day_usd > 0 else None
@@ -108,7 +108,7 @@ class AlephActionProvider(ActionProvider[WalletProvider]):
         schema=BuyCreditsInput,
     )
     def buy_credits(
-        self, _wallet_provider: WalletProvider, args: dict[str, Any]
+        self, wallet_provider: WalletProvider, args: dict[str, Any]
     ) -> str:
         import asyncio
 

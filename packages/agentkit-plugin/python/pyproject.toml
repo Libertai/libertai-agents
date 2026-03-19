@@ -1,6 +1,6 @@
 [project]
 name = "libertai-agentkit-plugin"
-version = "0.1.0"
+version = "0.1.1"
 description = "Build autonomous agents that pay for their own compute and inference — powered by AgentKit, Aleph Cloud, and LibertAI"
 authors = [{ name = "LibertAI.io team", email = "hello@libertai.io" }]
 readme = "README.md"
