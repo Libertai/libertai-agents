@@ -103,4 +103,10 @@ async def start_agent() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(start_agent())
+    import os
+
+    try:
+        asyncio.run(start_agent())
+    except KeyboardInterrupt:
+        print("\nShutting down...")
+        os._exit(0)
