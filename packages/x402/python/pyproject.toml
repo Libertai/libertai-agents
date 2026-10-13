@@ -1,6 +1,6 @@
 [project]
 name = "libertai-x402"
-version = "0.1.0"
+version = "0.2.0"
 description = "x402 utils to use LibertAI services"
 authors = [{ name = "LibertAI.io team", email = "hello@libertai.io" }]
 readme = "README.md"
@@ -14,6 +14,7 @@ Repository = "https://github.com/LibertAI/libertai-agents"
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.11.0"
 ruff = "^0.6.0"
+pytest = "^8.3.0"
 
 [build-system]
 requires = ["poetry-core>=2.0"]

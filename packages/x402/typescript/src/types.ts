@@ -7,8 +7,8 @@ export interface PaymentRequirements {
   maxTimeoutSeconds: number;
   asset: string;
   extra: {
-    name: string;
-    version: string;
+    name?: string;
+    version?: string;
     primaryType?: string;
     [key: string]: unknown;
   };

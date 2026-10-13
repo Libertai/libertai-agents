@@ -29,15 +29,13 @@ class PaymentRequirements:
             raise ValueError(
                 f"Missing required PaymentRequirements field(s): {', '.join(sorted(missing))}"
             )
-        return cls(**{k: v for k, v in data.items() if k in known})
-
-    @property
-    def name(self) -> str:
-        return self.extra.get("name", "")
-
-    @property
-    def version(self) -> str:
-        return self.extra.get("version", "")
+        values = {k: v for k, v in data.items() if k in known}
+        extra = values.get("extra")
+        if extra is None:
+            values["extra"] = {}
+        elif not isinstance(extra, dict):
+            raise ValueError("PaymentRequirements 'extra' must be an object")
+        return cls(**values)
 
     @property
     def primary_type(self) -> str:

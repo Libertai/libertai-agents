@@ -9,9 +9,14 @@ from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from eth_utils import to_checksum_address
 
+from libertai_x402.policy import (
+    BASE_CHAIN_ID,
+    USDC_BASE_ADDRESS,
+    USDC_BASE_NAME,
+    USDC_BASE_VERSION,
+)
 from libertai_x402.types import PaymentRequirements
 
-BASE_CHAIN_ID = 8453
 BASE_RPC_URL = "https://mainnet.base.org"
 
 # keccak256("nonces(address)")[:4]
@@ -55,25 +60,24 @@ def create_payment_header(
     private_key: str,
     requirements: PaymentRequirements,
 ) -> str:
-    """Create x402 payment header with EIP-712 signature."""
+    """Create x402 payment header with EIP-712 signature.
+
+    Callers must validate `requirements` with a PaymentPolicy first: the domain
+    is pinned, but payee, amount and timeout are signed as given.
+    """
     account: LocalAccount = Account.from_key(private_key)
     now = int(time.time())
     primary_type = requirements.primary_type
 
-    if requirements.network != "eip155:8453":
-        raise ValueError(
-            f"Unsupported network '{requirements.network}', expected 'eip155:8453' (Base)"
-        )
-
     domain = {
-        "name": requirements.name,
-        "version": requirements.version,
+        "name": USDC_BASE_NAME,
+        "version": USDC_BASE_VERSION,
         "chainId": BASE_CHAIN_ID,
-        "verifyingContract": to_checksum_address(requirements.asset),
+        "verifyingContract": to_checksum_address(USDC_BASE_ADDRESS),
     }
 
     if primary_type == "Permit":
-        nonce = _get_permit_nonce(requirements.asset, account.address)
+        nonce = _get_permit_nonce(USDC_BASE_ADDRESS, account.address)
         deadline = now + requirements.maxTimeoutSeconds
 
         message = {

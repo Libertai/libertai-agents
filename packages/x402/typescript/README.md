@@ -50,11 +50,31 @@ const response = await fetchWithPayment(
 );
 ```
 
+## Spending limits
+
+The wrapper only signs a payment when every check passes, and throws `PaymentRejectedError` otherwise:
+
+- the request goes to an allowed origin (default: `https://api.libertai.io`)
+- the payment is USDC on Base; the EIP-712 domain is pinned in the package and never read from the 402
+- the payee (or Permit spender) is an allowed address (default: LibertAI's facilitator and wallet)
+- the amount is at most `maxAmount` (default: 5 USDC per request). The cap applies to each request; there is no running total
+- the signature is valid for at most `maxTimeoutSeconds` (default: 1 day)
+
+To pay another x402 service, allow it explicitly:
+
+```typescript
+const fetchWithPayment = wrapFetchWithPayment("0x...", {
+  allowedOrigins: ["https://api.libertai.io", "https://x402.example.com"],
+  allowedPayees: ["0x..."],
+  maxAmount: 10_000_000n, // 10 USDC, in atomic units (6 decimals)
+});
+```
+
 ## How it works
 
 1. Makes the request normally
-2. If the server responds with `402`, reads `PaymentRequirements` from the response body
-3. Signs an EIP-712 typed data message (TransferWithAuthorization on Base) using the provided private key
+2. If the server responds with `402`, picks the first entry in `accepts` that passes the spending limits
+3. Signs an EIP-712 typed data message (Permit or TransferWithAuthorization for USDC on Base) using the provided private key
 4. Retries the request with the signed payment in the `X-PAYMENT` header
 
 ## License
