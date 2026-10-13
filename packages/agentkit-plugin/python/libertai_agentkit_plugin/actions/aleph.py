@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from typing import Any, Optional
 
 import httpx
@@ -116,10 +117,13 @@ class AlephActionProvider(ActionProvider[WalletProvider]):
             validated = BuyCreditsInput(**args)
             address = self._account.address
 
-            from libertai_x402 import create_payment_client
+            from libertai_x402 import PaymentPolicy, create_payment_client
+
+            # Cap the signed payment at the amount the agent asked for (USDC, 6 decimals).
+            policy = PaymentPolicy(max_amount=math.ceil(validated.amount * 1_000_000))
 
             async def _buy() -> str:
-                async with create_payment_client(self._private_key) as client:
+                async with create_payment_client(self._private_key, policy=policy) as client:
                     response = await client.post(
                         f"{LIBERTAI_API_BASE}/libertai/aleph-credits",
                         json={"address": address, "amount": validated.amount},
