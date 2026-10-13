@@ -1,7 +1,10 @@
 import { getAddress, parseAbi, toHex } from "viem";
 import type { PrivateKeyAccount } from "viem/accounts";
-import { base } from "viem/chains";
+import { BASE_CHAIN_ID, USDC_BASE } from "./policy.js";
 import type { PaymentRequirements } from "./types.js";
+
+// Callers must validate `requirements` with the payment policy first: the
+// domain is pinned, but payee, amount and timeout are signed as given.
 
 export async function createPaymentHeader(
   account: PrivateKeyAccount,
@@ -11,18 +14,18 @@ export async function createPaymentHeader(
 ): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const primaryType =
-    requirements.extra.primaryType ?? "TransferWithAuthorization";
+    requirements.extra?.primaryType ?? "TransferWithAuthorization";
 
   const domain = {
-    name: requirements.extra.name,
-    version: requirements.extra.version,
-    chainId: base.id,
-    verifyingContract: getAddress(requirements.asset),
+    name: USDC_BASE.name,
+    version: USDC_BASE.version,
+    chainId: BASE_CHAIN_ID,
+    verifyingContract: getAddress(USDC_BASE.address),
   };
 
   if (primaryType === "Permit") {
     const nonce = await publicClient.readContract({
-      address: getAddress(requirements.asset) as `0x${string}`,
+      address: domain.verifyingContract,
       abi: parseAbi(["function nonces(address) view returns (uint256)"]),
       functionName: "nonces",
       args: [getAddress(account.address)],

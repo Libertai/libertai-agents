@@ -12,7 +12,7 @@ const MOCK_REQUIREMENTS = {
   network: "eip155:8453",
   maxAmountRequired: "1000",
   resource: "https://api.libertai.io/v1/chat/completions",
-  payTo: "0x1234567890123456789012345678901234567890",
+  payTo: "0x48E5A3e497D0C092D5B0Ba22B5A86ADA94227DFa",
   maxTimeoutSeconds: 300,
   asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   extra: {
@@ -22,11 +22,11 @@ const MOCK_REQUIREMENTS = {
   },
 };
 
-function make402Response() {
-  return new Response(
-    JSON.stringify({ x402Version: 2, accepts: [MOCK_REQUIREMENTS] }),
-    { status: 402, headers: { "Content-Type": "application/json" } },
-  );
+function make402Response(accepts: unknown[] = [MOCK_REQUIREMENTS]) {
+  return new Response(JSON.stringify({ x402Version: 2, accepts }), {
+    status: 402,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 function make200Response() {
