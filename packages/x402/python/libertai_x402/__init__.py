@@ -1,4 +1,16 @@
-from libertai_x402.client import create_payment_client
-from libertai_x402.types import PaymentRequirements
+from x402.schemas import PaymentRequirements
 
-__all__ = ["create_payment_client", "PaymentRequirements"]
+from libertai_x402.client import (
+    BASE_NETWORK,
+    PaymentLimitError,
+    create_payment_client,
+    spending_policy,
+)
+
+__all__ = [
+    "BASE_NETWORK",
+    "PaymentLimitError",
+    "PaymentRequirements",
+    "create_payment_client",
+    "spending_policy",
+]

@@ -1,6 +1,6 @@
 {
   "name": "@libertai/x402",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "x402 utils to use LibertAI services",
   "type": "module",
   "license": "MIT",
@@ -42,6 +42,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@x402/core": "^2.31.0",
+    "@x402/evm": "^2.31.0",
+    "@x402/fetch": "^2.31.0",
     "viem": "^2.0.0"
   },
   "devDependencies": {
