@@ -1,6 +1,6 @@
 {
   "name": "@libertai/agentkit-plugin",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Build autonomous agents that pay for their own compute and inference — powered by AgentKit, Aleph Cloud, and LibertAI",
   "type": "module",
   "license": "MIT",
@@ -70,7 +70,7 @@
     "viem": "^2.0.0"
   },
   "dependencies": {
-    "@libertai/x402": "^0.1.0",
+    "@libertai/x402": "^0.2.0",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.25.0"
   },
