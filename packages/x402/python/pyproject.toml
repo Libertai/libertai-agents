@@ -1,6 +1,6 @@
 [project]
 name = "libertai-x402"
-version = "0.2.0"
+version = "0.2.1"
 description = "x402 utils to use LibertAI services"
 authors = [{ name = "LibertAI.io team", email = "hello@libertai.io" }]
 readme = "README.md"
