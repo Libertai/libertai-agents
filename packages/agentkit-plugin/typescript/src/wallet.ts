@@ -2,17 +2,28 @@ import {
   createWalletClient,
   createPublicClient,
   http,
-  type Hex,
+  type Account,
   type Chain,
+  type Hex,
+  type PublicClient,
+  type Transport,
+  type WalletClient,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import { ViemWalletProvider } from "@coinbase/agentkit";
+
+export interface AgentWallet {
+  walletClient: WalletClient<Transport, Chain, Account>;
+  publicClient: PublicClient<Transport, Chain>;
+  provider: ViemWalletProvider;
+  account: PrivateKeyAccount;
+}
 
 export async function createAgentWallet(
   privateKey: Hex,
   chain: Chain,
   rpcUrl?: string,
-) {
+): Promise<AgentWallet> {
   const account = privateKeyToAccount(privateKey);
 
   const walletClient = createWalletClient({
