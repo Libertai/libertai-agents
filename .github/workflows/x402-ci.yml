@@ -34,7 +34,7 @@ jobs:
         run: npm test
 
   x402-python-ci:
-    name: Python - Lint & Type Check
+    name: Python - Lint, Type Check & Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -52,3 +52,5 @@ jobs:
         run: poetry run ruff check .
       - name: Type check
         run: poetry run mypy libertai_x402/
+      - name: Test
+        run: poetry run pytest

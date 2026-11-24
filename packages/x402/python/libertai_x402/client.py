@@ -1,57 +1,84 @@
 from __future__ import annotations
 
-from functools import partial
+from collections.abc import Iterable
 from typing import Any
 
-import anyio
 import httpx
+from eth_account import Account
+from x402 import x402Client
+from x402.client_base import PaymentPolicy, RequirementsView
+from x402.http.clients.httpx import PaymentError, x402AsyncTransport
+from x402.mechanisms.evm import EthAccountSigner
+from x402.mechanisms.evm.exact import ExactEvmClientScheme
+from x402.mechanisms.evm.upto import UptoEvmClientScheme
 
-from libertai_x402.sign import create_payment_header
-from libertai_x402.types import PaymentRequirements
+BASE_NETWORK = "eip155:8453"
 
 
-class _PaymentTransport(httpx.AsyncBaseTransport):
-    def __init__(self, private_key: str, transport: httpx.AsyncBaseTransport) -> None:
-        self._private_key = private_key
+class PaymentLimitError(PaymentError):
+    """No payment option offered by the server fits the configured limits."""
+
+
+def spending_policy(
+    max_amount: int | None = None,
+    allowed_pay_to: Iterable[str] | None = None,
+) -> PaymentPolicy:
+    """x402 policy keeping only requirements within ``max_amount`` (atomic units) and ``allowed_pay_to``."""
+    allowed = None if allowed_pay_to is None else {a.lower() for a in allowed_pay_to}
+
+    def policy(_version: int, reqs: list[RequirementsView]) -> list[RequirementsView]:
+        kept = [
+            r
+            for r in reqs
+            if (max_amount is None or int(r.get_amount()) <= max_amount)
+            and (allowed is None or r.pay_to.lower() in allowed)
+        ]
+        if not kept:
+            offered = ", ".join(f"{r.get_amount()} to {r.pay_to}" for r in reqs)
+            raise PaymentLimitError(
+                f"x402: no payment option within limits (max_amount={max_amount}, "
+                f"allowed_pay_to={sorted(allowed) if allowed is not None else 'any'}); offered: {offered}"
+            )
+        return kept
+
+    return policy
+
+
+class _StripPlaceholderAuthTransport(httpx.AsyncBaseTransport):
+    """Drops ``Authorization: Bearer x402``, a placeholder API key that must never reach the server."""
+
+    def __init__(self, transport: httpx.AsyncBaseTransport) -> None:
         self._transport = transport
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         if request.headers.get("authorization") == "Bearer x402":
-            request.headers.pop("authorization")
+            del request.headers["authorization"]
+        return await self._transport.handle_async_request(request)
 
-        response = await self._transport.handle_async_request(request)
-
-        if response.status_code != 402:
-            return response
-
-        await response.aread()
-        body = response.json()
-        accepts = body.get("accepts")
-        if not accepts:
-            raise ValueError("x402: 402 response missing accepts[0]")
-
-        requirements = PaymentRequirements.from_dict(accepts[0])
-        payment_header = await anyio.to_thread.run_sync(
-            partial(create_payment_header, self._private_key, requirements)
-        )
-
-        headers = request.headers.copy()
-        headers["x-payment"] = payment_header
-        if headers.get("authorization") == "Bearer x402":
-            headers.pop("authorization")
-
-        retry_request = httpx.Request(
-            method=request.method,
-            url=request.url,
-            headers=headers,
-            content=request.content,
-            extensions=request.extensions,
-        )
-        return await self._transport.handle_async_request(retry_request)
+    async def aclose(self) -> None:
+        await self._transport.aclose()
 
 
-def create_payment_client(private_key: str, **kwargs: Any) -> httpx.AsyncClient:
-    """Create an httpx.AsyncClient that handles x402 payments transparently."""
-    transport = httpx.AsyncHTTPTransport()
-    payment_transport = _PaymentTransport(private_key, transport)
-    return httpx.AsyncClient(transport=payment_transport, **kwargs)
+def create_payment_client(
+    private_key: str,
+    *,
+    max_amount: int | None = None,
+    allowed_pay_to: Iterable[str] | None = None,
+    transport: httpx.AsyncBaseTransport | None = None,
+    **kwargs: Any,
+) -> httpx.AsyncClient:
+    """Create an httpx.AsyncClient that pays x402 v2 challenges (exact + upto on Base) transparently.
+
+    Raises ``PaymentLimitError`` instead of signing when no offered payment fits the limits.
+    """
+    signer = EthAccountSigner(Account.from_key(private_key))
+    client = x402Client()
+    client.register(BASE_NETWORK, ExactEvmClientScheme(signer))
+    client.register(BASE_NETWORK, UptoEvmClientScheme(signer))
+    # The SDK's default spend controls cap every payment at $1; limits are only the ones passed here.
+    client.set_spend_controls(False)
+    if max_amount is not None or allowed_pay_to is not None:
+        client.register_policy(spending_policy(max_amount, allowed_pay_to))
+
+    inner = _StripPlaceholderAuthTransport(transport or httpx.AsyncHTTPTransport())
+    return httpx.AsyncClient(transport=x402AsyncTransport(client, inner), **kwargs)
