@@ -1,11 +1,19 @@
 import type { Hex } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { wrapFetchWithPayment } from "../src/fetch.js";
+import {
+  DEFAULT_MAX_AMOUNT,
+  DEFAULT_MAX_TIMEOUT_SECONDS,
+  LIBERTAI_API_ORIGIN,
+  LIBERTAI_PAY_TO,
+  wrapFetchWithPayment,
+} from "../src/fetch.js";
 
 const TEST_PRIVATE_KEY: Hex =
   "0x0ee876735a3d8ea5507a6e984ed60e7f16ceb60aca56546f2dbcac61ebd40730";
-const PAY_TO = "0x1234567890123456789012345678901234567890";
+const PAY_TO = LIBERTAI_PAY_TO;
+const OTHER_PAY_TO = "0xabcdef0123456789abcdef0123456789abcdef01";
 const URL = "https://api.libertai.io/v1/chat/completions";
+const OTHER_URL = "https://evil.example/v1/chat/completions";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
@@ -52,6 +60,11 @@ function make402Response(accepts: unknown[]) {
       "PAYMENT-REQUIRED": b64(paymentRequired),
     },
   });
+}
+
+function withUrl(response: Response, url: string): Response {
+  Object.defineProperty(response, "url", { value: url });
+  return response;
 }
 
 function make200Response() {
@@ -131,7 +144,9 @@ describe("wrapFetchWithPayment", () => {
     const payment = decodePaymentSignature(mockFetch.mock.calls[1][0]);
     expect(payment.x402Version).toBe(2);
     expect(payment.accepted.scheme).toBe("exact");
-    expect(payment.payload.authorization.to).toBe(PAY_TO);
+    expect(payment.payload.authorization.to.toLowerCase()).toBe(
+      PAY_TO.toLowerCase(),
+    );
     expect(payment.payload.authorization.value).toBe("5000");
   });
 
@@ -177,10 +192,12 @@ describe("wrapFetchWithPayment", () => {
 
   it("matches allowedPayTo case-insensitively", async () => {
     const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY, {
-      allowedPayTo: [PAY_TO.toUpperCase().replace("0X", "0x")],
+      allowedPayTo: [OTHER_PAY_TO.toUpperCase().replace("0X", "0x")],
     });
     mockFetch
-      .mockResolvedValueOnce(make402Response([UPTO_REQUIREMENTS]))
+      .mockResolvedValueOnce(
+        make402Response([{ ...UPTO_REQUIREMENTS, payTo: OTHER_PAY_TO }]),
+      )
       .mockResolvedValueOnce(make200Response());
 
     const result = await fetchFn(URL, chatInit());
@@ -216,5 +233,201 @@ describe("wrapFetchWithPayment", () => {
     await expect(fetchFn(URL, chatInit())).rejects.toThrow(
       /Failed to parse payment requirements/,
     );
+  });
+});
+
+describe("default limits", () => {
+  beforeEach(() => {
+    mockFetch.mockReset();
+  });
+
+  it("exports the LibertAI defaults", () => {
+    expect(LIBERTAI_API_ORIGIN).toBe("https://api.libertai.io");
+    expect(LIBERTAI_PAY_TO).toBe("0x48E5A3e497D0C092D5B0Ba22B5A86ADA94227DFa");
+    expect(DEFAULT_MAX_AMOUNT).toBe(5_000_000n);
+    expect(DEFAULT_MAX_TIMEOUT_SECONDS).toBe(86400);
+  });
+
+  it("pays up to 5 USDC by default", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch
+      .mockResolvedValueOnce(
+        make402Response([{ ...EXACT_REQUIREMENTS, amount: "5000000" }]),
+      )
+      .mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(URL, chatInit())).status).toBe(200);
+  });
+
+  it("refuses more than 5 USDC by default", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch.mockResolvedValueOnce(
+      make402Response([{ ...EXACT_REQUIREMENTS, amount: "5000001" }]),
+    );
+
+    await expect(fetchFn(URL, chatInit())).rejects.toThrow(
+      /no payment option within limits/,
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("maxAmount null disables the amount limit", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY, { maxAmount: null });
+    mockFetch
+      .mockResolvedValueOnce(
+        make402Response([{ ...EXACT_REQUIREMENTS, amount: "5000001" }]),
+      )
+      .mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(URL, chatInit())).status).toBe(200);
+  });
+
+  it("refuses a payTo other than LibertAI's wallet by default", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch.mockResolvedValueOnce(
+      make402Response([{ ...UPTO_REQUIREMENTS, payTo: OTHER_PAY_TO }]),
+    );
+
+    await expect(fetchFn(URL, chatInit())).rejects.toThrow(
+      /no payment option within limits/,
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("matches the default payTo case-insensitively", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch
+      .mockResolvedValueOnce(
+        make402Response([
+          { ...UPTO_REQUIREMENTS, payTo: LIBERTAI_PAY_TO.toLowerCase() },
+        ]),
+      )
+      .mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(URL, chatInit())).status).toBe(200);
+  });
+
+  it("allowedPayTo null disables the payTo check", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY, {
+      allowedPayTo: null,
+    });
+    mockFetch
+      .mockResolvedValueOnce(
+        make402Response([{ ...UPTO_REQUIREMENTS, payTo: OTHER_PAY_TO }]),
+      )
+      .mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(URL, chatInit())).status).toBe(200);
+  });
+
+  it("refuses maxTimeoutSeconds above one day by default", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch.mockResolvedValueOnce(
+      make402Response([{ ...EXACT_REQUIREMENTS, maxTimeoutSeconds: 86401 }]),
+    );
+
+    await expect(fetchFn(URL, chatInit())).rejects.toThrow(
+      /no payment option within limits/,
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("maxTimeoutSeconds null disables the timeout check", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY, {
+      maxTimeoutSeconds: null,
+    });
+    mockFetch
+      .mockResolvedValueOnce(
+        make402Response([{ ...EXACT_REQUIREMENTS, maxTimeoutSeconds: 86401 }]),
+      )
+      .mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(URL, chatInit())).status).toBe(200);
+  });
+});
+
+describe("origin checks", () => {
+  beforeEach(() => {
+    mockFetch.mockReset();
+  });
+
+  it("refuses a 402 from a non-allowed origin", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch.mockResolvedValueOnce(make402Response([UPTO_REQUIREMENTS]));
+
+    await expect(fetchFn(OTHER_URL, chatInit())).rejects.toThrow(
+      /x402: refusing to pay a 402 from non-allowed origin https:\/\/evil\.example/,
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses a 402 reached through a redirect to a non-allowed origin", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch.mockResolvedValueOnce(
+      withUrl(make402Response([UPTO_REQUIREMENTS]), OTHER_URL),
+    );
+
+    await expect(fetchFn(URL, chatInit())).rejects.toThrow(
+      /refusing to pay a 402 from non-allowed origin/,
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses to send a payment to a non-allowed origin", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+
+    await expect(
+      fetchFn(OTHER_URL, {
+        ...chatInit(),
+        headers: { "PAYMENT-SIGNATURE": "signed" },
+      }),
+    ).rejects.toThrow(/refusing to send a payment to non-allowed origin/);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("does not follow redirects on the paid retry", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch
+      .mockResolvedValueOnce(make402Response([UPTO_REQUIREMENTS]))
+      .mockResolvedValueOnce(
+        new Response(null, { status: 302, headers: { Location: OTHER_URL } }),
+      );
+
+    const result = await fetchFn(URL, chatInit());
+
+    expect(result.status).toBe(302);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect((mockFetch.mock.calls[0][0] as Request).redirect).toBe("follow");
+    expect((mockFetch.mock.calls[1][0] as Request).redirect).toBe("manual");
+  });
+
+  it("passes through non-402 responses from any origin", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch.mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(OTHER_URL, chatInit())).status).toBe(200);
+  });
+
+  it("pays an extra allowed origin", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY, {
+      allowedOrigins: [LIBERTAI_API_ORIGIN, "https://evil.example/"],
+    });
+    mockFetch
+      .mockResolvedValueOnce(make402Response([UPTO_REQUIREMENTS]))
+      .mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(OTHER_URL, chatInit())).status).toBe(200);
+    expect((mockFetch.mock.calls[1][0] as Request).url).toBe(OTHER_URL);
+  });
+
+  it("allowedOrigins null disables the origin check", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY, {
+      allowedOrigins: null,
+    });
+    mockFetch
+      .mockResolvedValueOnce(make402Response([UPTO_REQUIREMENTS]))
+      .mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(OTHER_URL, chatInit())).status).toBe(200);
   });
 });
