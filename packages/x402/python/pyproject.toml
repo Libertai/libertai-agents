@@ -14,7 +14,7 @@ Repository = "https://github.com/LibertAI/libertai-agents"
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.11.0"
 ruff = "^0.6.0"
-pytest = "^8"
+pytest = "^9"
 pytest-asyncio = "^1"
 
 [build-system]
