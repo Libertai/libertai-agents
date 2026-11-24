@@ -2,6 +2,7 @@ from x402.schemas import PaymentRequirements
 
 from libertai_x402.client import (
     BASE_NETWORK,
+    BASE_USDC,
     DEFAULT_MAX_AMOUNT,
     DEFAULT_MAX_TIMEOUT_SECONDS,
     LIBERTAI_API_ORIGIN,
@@ -13,6 +14,7 @@ from libertai_x402.client import (
 
 __all__ = [
     "BASE_NETWORK",
+    "BASE_USDC",
     "DEFAULT_MAX_AMOUNT",
     "DEFAULT_MAX_TIMEOUT_SECONDS",
     "LIBERTAI_API_ORIGIN",
