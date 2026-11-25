@@ -12,6 +12,8 @@ export const BASE_NETWORK = "eip155:8453";
 export const LIBERTAI_API_ORIGIN = "https://api.libertai.io";
 /** LibertAI's payment wallet, the `payTo` of every LibertAI API payment. */
 export const LIBERTAI_PAY_TO = "0x48E5A3e497D0C092D5B0Ba22B5A86ADA94227DFa";
+/** USDC on Base, the only token the default limits allow. */
+export const BASE_USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 /** 5 USDC in atomic units (6 decimals). */
 export const DEFAULT_MAX_AMOUNT = 5_000_000n;
 export const DEFAULT_MAX_TIMEOUT_SECONDS = 86400;
@@ -22,6 +24,8 @@ export interface PaymentOptions {
   allowedOrigins?: string[] | null;
   /** Recipient addresses allowed as `payTo` (case-insensitive). Default: `[LIBERTAI_PAY_TO]`. */
   allowedPayTo?: string[] | null;
+  /** Token contracts allowed as `asset` (case-insensitive). Default: `[BASE_USDC]`. */
+  allowedAssets?: string[] | null;
   /** Max atomic USDC units (6 decimals) a single payment may authorize. Default: `DEFAULT_MAX_AMOUNT`. */
   maxAmount?: string | bigint | null;
   /** Max `maxTimeoutSeconds` (signature validity) a payment may have. Default: `DEFAULT_MAX_TIMEOUT_SECONDS`. */
@@ -42,6 +46,11 @@ export function createSpendingPolicy(
     rawAllowedPayTo === null
       ? null
       : rawAllowedPayTo.map((a) => a.toLowerCase());
+  const rawAllowedAssets = withDefault(options.allowedAssets, [BASE_USDC]);
+  const allowedAssets =
+    rawAllowedAssets === null
+      ? null
+      : rawAllowedAssets.map((a) => a.toLowerCase());
   const maxTimeoutSeconds = withDefault(
     options.maxTimeoutSeconds,
     DEFAULT_MAX_TIMEOUT_SECONDS,
@@ -53,17 +62,20 @@ export function createSpendingPolicy(
         (maxAmount === null || BigInt(r.amount) <= maxAmount) &&
         (allowedPayTo === null ||
           allowedPayTo.includes(r.payTo.toLowerCase())) &&
+        (allowedAssets === null ||
+          allowedAssets.includes(r.asset.toLowerCase())) &&
         (maxTimeoutSeconds === null ||
           r.maxTimeoutSeconds <= maxTimeoutSeconds),
     );
     if (allowed.length === 0) {
       const offered = requirements
         .map(
-          (r) => `${r.amount} to ${r.payTo} (timeout ${r.maxTimeoutSeconds}s)`,
+          (r) =>
+            `${r.amount} of ${r.asset} to ${r.payTo} (timeout ${r.maxTimeoutSeconds}s)`,
         )
         .join(", ");
       throw new Error(
-        `x402: no payment option within limits (maxAmount=${maxAmount ?? "none"}, allowedPayTo=${allowedPayTo?.join(",") ?? "any"}, maxTimeoutSeconds=${maxTimeoutSeconds ?? "none"}); offered: ${offered}`,
+        `x402: no payment option within limits (maxAmount=${maxAmount ?? "none"}, allowedPayTo=${allowedPayTo?.join(",") ?? "any"}, allowedAssets=${allowedAssets?.join(",") ?? "any"}, maxTimeoutSeconds=${maxTimeoutSeconds ?? "none"}); offered: ${offered}`,
       );
     }
     return allowed;
@@ -109,7 +121,7 @@ export function wrapFetchWithPayment(
     if (response.status === 402) {
       const url = response.url || req.url;
       if (!isAllowedOrigin(url)) {
-        void response.body?.cancel();
+        response.body?.cancel().catch(() => {});
         throw new Error(
           `x402: refusing to pay a 402 from non-allowed origin ${new URL(url).origin}`,
         );

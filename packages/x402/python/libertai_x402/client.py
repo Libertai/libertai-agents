@@ -14,6 +14,9 @@ from x402.mechanisms.evm.upto import UptoEvmClientScheme
 
 BASE_NETWORK = "eip155:8453"
 
+BASE_USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+"""USDC on Base, the only token the default limits allow."""
+
 LIBERTAI_API_ORIGIN = "https://api.libertai.io"
 LIBERTAI_PAY_TO = "0x48E5A3e497D0C092D5B0Ba22B5A86ADA94227DFa"
 """LibertAI's payment wallet, the ``payTo`` of every LibertAI API payment."""
@@ -30,10 +33,13 @@ def spending_policy(
     max_amount: int | None = DEFAULT_MAX_AMOUNT,
     allowed_pay_to: Iterable[str] | None = (LIBERTAI_PAY_TO,),
     max_timeout_seconds: int | None = DEFAULT_MAX_TIMEOUT_SECONDS,
+    allowed_assets: Iterable[str] | None = (BASE_USDC,),
 ) -> PaymentPolicy:
-    """x402 policy keeping only requirements within ``max_amount`` (atomic units), ``allowed_pay_to``
-    and ``max_timeout_seconds``. ``None`` disables that check."""
+    """x402 policy keeping only requirements within ``max_amount`` (atomic units), ``allowed_pay_to``,
+    ``max_timeout_seconds`` and ``allowed_assets``. ``None`` disables that check."""
     allowed = None if allowed_pay_to is None else {a.lower() for a in allowed_pay_to}
+
+    assets = None if allowed_assets is None else {a.lower() for a in allowed_assets}
 
     def policy(_version: int, reqs: list[RequirementsView]) -> list[RequirementsView]:
         kept = [
@@ -41,6 +47,7 @@ def spending_policy(
             for r in reqs
             if (max_amount is None or int(r.get_amount()) <= max_amount)
             and (allowed is None or r.pay_to.lower() in allowed)
+            and (assets is None or r.asset.lower() in assets)
             and (
                 max_timeout_seconds is None
                 or r.max_timeout_seconds <= max_timeout_seconds
@@ -48,13 +55,14 @@ def spending_policy(
         ]
         if not kept:
             offered = ", ".join(
-                f"{r.get_amount()} to {r.pay_to} (timeout {r.max_timeout_seconds}s)"
+                f"{r.get_amount()} of {r.asset} to {r.pay_to} (timeout {r.max_timeout_seconds}s)"
                 for r in reqs
             )
             raise PaymentLimitError(
                 f"x402: no payment option within limits (max_amount={max_amount}, "
                 f"allowed_pay_to={sorted(allowed) if allowed is not None else 'any'}, "
-                f"max_timeout_seconds={max_timeout_seconds}); offered: {offered}"
+                f"max_timeout_seconds={max_timeout_seconds}, "
+                f"allowed_assets={sorted(assets) if assets is not None else 'any'}); offered: {offered}"
             )
         return kept
 
@@ -93,6 +101,10 @@ class _GuardTransport(httpx.AsyncBaseTransport):
                 f"x402: refusing to send a payment to non-allowed origin {_origin(request.url)}"
             )
         response = await self._transport.handle_async_request(request)
+        if "payment-signature" in request.headers and response.is_redirect:
+            # Without a Location the client can't follow it: a redirect after paying must never
+            # lead to another payment.
+            del response.headers["location"]
         if response.status_code == 402 and not self._is_allowed(request.url):
             await response.aclose()
             raise PaymentLimitError(
@@ -111,6 +123,7 @@ def create_payment_client(
     allowed_pay_to: Iterable[str] | None = (LIBERTAI_PAY_TO,),
     max_amount: int | None = DEFAULT_MAX_AMOUNT,
     max_timeout_seconds: int | None = DEFAULT_MAX_TIMEOUT_SECONDS,
+    allowed_assets: Iterable[str] | None = (BASE_USDC,),
     transport: httpx.AsyncBaseTransport | None = None,
     **kwargs: Any,
 ) -> httpx.AsyncClient:
@@ -127,7 +140,7 @@ def create_payment_client(
     # The SDK's default spend controls cap every payment at $1; limits are only the spending policy's.
     client.set_spend_controls(False)
     client.register_policy(
-        spending_policy(max_amount, allowed_pay_to, max_timeout_seconds)
+        spending_policy(max_amount, allowed_pay_to, max_timeout_seconds, allowed_assets)
     )
 
     inner = _GuardTransport(transport or httpx.AsyncHTTPTransport(), allowed_origins)
