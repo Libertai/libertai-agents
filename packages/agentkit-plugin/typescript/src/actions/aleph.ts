@@ -22,7 +22,6 @@ export function createAlephActionProvider(
 ) {
   const alephApiUrls = options?.alephApiUrls ?? DEFAULT_ALEPH_API_URLS;
   const account = privateKeyToAccount(privateKey);
-  const fetchWithPayment = wrapFetchWithPayment(privateKey);
 
   return customActionProvider<EvmWalletProvider>([
     {
@@ -87,6 +86,10 @@ export function createAlephActionProvider(
       ) => {
         try {
           const address = account.address;
+          // The endpoint charges exactly the amount rounded up to 6 decimals; never sign more.
+          const fetchWithPayment = wrapFetchWithPayment(privateKey, {
+            maxAmount: BigInt(Math.ceil(args.amount * 1_000_000)),
+          });
 
           const response = await fetchWithPayment(
             `${LIBERTAI_API_BASE}/libertai/aleph-credits`,
