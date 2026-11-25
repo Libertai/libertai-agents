@@ -6,6 +6,7 @@ import httpx
 import pytest
 
 from libertai_x402 import (
+    BASE_USDC,
     DEFAULT_MAX_AMOUNT,
     DEFAULT_MAX_TIMEOUT_SECONDS,
     LIBERTAI_API_ORIGIN,
@@ -16,6 +17,7 @@ from libertai_x402 import (
 
 PRIVATE_KEY = "0x0ee876735a3d8ea5507a6e984ed60e7f16ceb60aca56546f2dbcac61ebd40730"
 PAY_TO = LIBERTAI_PAY_TO
+OTHER_ASSET = "0x4200000000000000000000000000000000000006"
 OTHER_PAY_TO = "0xabcdef0123456789abcdef0123456789abcdef01"
 URL = "https://api.libertai.io/v1/chat/completions"
 OTHER_URL = "https://evil.example/v1/chat/completions"
@@ -212,6 +214,31 @@ async def test_allowed_pay_to_none_disables_check() -> None:
     assert (await _post(server, allowed_pay_to=None)).status_code == 200
 
 
+async def test_refuses_other_asset_by_default() -> None:
+    server = _Server([{**UPTO, "asset": OTHER_ASSET}])
+    with pytest.raises(PaymentLimitError, match="no payment option within limits"):
+        await _post(server)
+    assert len(server.requests) == 1
+
+
+async def test_default_asset_is_case_insensitive() -> None:
+    server = _Server([{**UPTO, "asset": BASE_USDC.lower()}])
+    assert (await _post(server)).status_code == 200
+
+
+async def test_allowed_assets_accepts_listed_asset() -> None:
+    server = _Server([{**UPTO, "asset": OTHER_ASSET}])
+    response = await _post(
+        server, allowed_assets=[OTHER_ASSET.upper().replace("0X", "0x")]
+    )
+    assert response.status_code == 200
+
+
+async def test_allowed_assets_none_disables_check() -> None:
+    server = _Server([{**UPTO, "asset": OTHER_ASSET}])
+    assert (await _post(server, allowed_assets=None)).status_code == 200
+
+
 async def test_refuses_long_timeout_by_default() -> None:
     server = _Server([{**EXACT, "maxTimeoutSeconds": 86401}])
     with pytest.raises(PaymentLimitError, match="no payment option within limits"):
@@ -243,7 +270,7 @@ async def test_refuses_to_send_payment_to_other_origin() -> None:
     assert server.requests == []
 
 
-async def test_redirect_carrying_payment_to_other_origin_is_refused() -> None:
+async def test_redirect_carrying_payment_is_not_followed() -> None:
     seen: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -253,31 +280,26 @@ async def test_redirect_carrying_payment_to_other_origin_is_refused() -> None:
     async with create_payment_client(
         PRIVATE_KEY, transport=httpx.MockTransport(handler), follow_redirects=True
     ) as client:
-        with pytest.raises(PaymentLimitError, match="refusing to send a payment"):
-            await client.get(URL, headers={"PAYMENT-SIGNATURE": "signed"})
+        response = await client.get(URL, headers={"PAYMENT-SIGNATURE": "signed"})
+    assert response.status_code == 302
     assert [str(r.url) for r in seen] == [URL]
 
 
-async def test_redirect_after_paid_retry_is_not_paid_again() -> None:
+async def test_redirect_after_paid_retry_is_not_followed() -> None:
     seen: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen.append(request)
-        if request.url.host == "evil.example":
-            return _payment_required([UPTO])
         if "payment-signature" in request.headers:
-            return httpx.Response(302, headers={"Location": OTHER_URL})
+            return httpx.Response(302, headers={"Location": URL})
         return _payment_required([UPTO])
 
     async with create_payment_client(
         PRIVATE_KEY, transport=httpx.MockTransport(handler), follow_redirects=True
     ) as client:
-        with pytest.raises(
-            PaymentLimitError, match="refusing to pay a 402 from non-allowed origin"
-        ):
-            await client.post(URL, json={})
-    assert [str(r.url) for r in seen] == [URL, URL, OTHER_URL]
-    assert "payment-signature" not in seen[2].headers
+        response = await client.post(URL, json={})
+    assert response.status_code == 302
+    assert [str(r.url) for r in seen] == [URL, URL]
 
 
 async def test_non_402_from_other_origin_passes_through() -> None:

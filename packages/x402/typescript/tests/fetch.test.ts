@@ -1,6 +1,7 @@
 import type { Hex } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  BASE_USDC,
   DEFAULT_MAX_AMOUNT,
   DEFAULT_MAX_TIMEOUT_SECONDS,
   LIBERTAI_API_ORIGIN,
@@ -11,6 +12,7 @@ import {
 const TEST_PRIVATE_KEY: Hex =
   "0x0ee876735a3d8ea5507a6e984ed60e7f16ceb60aca56546f2dbcac61ebd40730";
 const PAY_TO = LIBERTAI_PAY_TO;
+const OTHER_ASSET = "0x4200000000000000000000000000000000000006";
 const OTHER_PAY_TO = "0xabcdef0123456789abcdef0123456789abcdef01";
 const URL = "https://api.libertai.io/v1/chat/completions";
 const OTHER_URL = "https://evil.example/v1/chat/completions";
@@ -314,6 +316,57 @@ describe("default limits", () => {
     mockFetch
       .mockResolvedValueOnce(
         make402Response([{ ...UPTO_REQUIREMENTS, payTo: OTHER_PAY_TO }]),
+      )
+      .mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(URL, chatInit())).status).toBe(200);
+  });
+
+  it("refuses an asset other than Base USDC by default", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch.mockResolvedValueOnce(
+      make402Response([{ ...UPTO_REQUIREMENTS, asset: OTHER_ASSET }]),
+    );
+
+    await expect(fetchFn(URL, chatInit())).rejects.toThrow(
+      /no payment option within limits/,
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("matches the default asset case-insensitively", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY);
+    mockFetch
+      .mockResolvedValueOnce(
+        make402Response([
+          { ...UPTO_REQUIREMENTS, asset: BASE_USDC.toLowerCase() },
+        ]),
+      )
+      .mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(URL, chatInit())).status).toBe(200);
+  });
+
+  it("accepts an asset listed in allowedAssets", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY, {
+      allowedAssets: [OTHER_ASSET.toUpperCase().replace("0X", "0x")],
+    });
+    mockFetch
+      .mockResolvedValueOnce(
+        make402Response([{ ...UPTO_REQUIREMENTS, asset: OTHER_ASSET }]),
+      )
+      .mockResolvedValueOnce(make200Response());
+
+    expect((await fetchFn(URL, chatInit())).status).toBe(200);
+  });
+
+  it("allowedAssets null disables the asset check", async () => {
+    const fetchFn = wrapFetchWithPayment(TEST_PRIVATE_KEY, {
+      allowedAssets: null,
+    });
+    mockFetch
+      .mockResolvedValueOnce(
+        make402Response([{ ...UPTO_REQUIREMENTS, asset: OTHER_ASSET }]),
       )
       .mockResolvedValueOnce(make200Response());
 

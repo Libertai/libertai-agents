@@ -72,6 +72,7 @@ Every payment is checked before it is signed or sent. Defaults target the Libert
 | --------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | `allowed_origins`     | `(LIBERTAI_API_ORIGIN,)` (`https://api.libertai.io`)                | only 402s from these origins are paid, and signed payments are only sent there |
 | `allowed_pay_to`      | `(LIBERTAI_PAY_TO,)` (`0x48E5A3e497D0C092D5B0Ba22B5A86ADA94227DFa`) | recipient (case-insensitive)                                                   |
+| `allowed_assets`      | `(BASE_USDC,)` (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`)       | token contract (case-insensitive)                                              |
 | `max_amount`          | `DEFAULT_MAX_AMOUNT` (`5_000_000`, 5 USDC)                          | atomic USDC units (6 decimals) per payment                                     |
 | `max_timeout_seconds` | `DEFAULT_MAX_TIMEOUT_SECONDS` (`86400`)                             | signature validity requested by the server                                     |
 
@@ -89,7 +90,7 @@ client = create_payment_client(
 )
 ```
 
-If a payment falls outside the limits, nothing is signed or sent and `libertai_x402.PaymentLimitError` is raised. Requests that are not answered with `402` work for any origin.
+If a payment falls outside the limits, nothing is signed or sent and `libertai_x402.PaymentLimitError` is raised. Requests that are not answered with `402` work for any origin. A redirect in answer to a paid request is returned as-is, never followed, so a payment is never repeated or forwarded elsewhere.
 
 ## How it works
 
